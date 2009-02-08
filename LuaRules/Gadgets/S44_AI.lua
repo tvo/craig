@@ -16,12 +16,17 @@ function gadget:GetInfo()
 end
 
 
+-- constants
+local GAIA_TEAM_ID = Spring.GetGaiaTeamID()
 
+-- globals
 local S44_AI_Debug_Mode = 1 -- Must be 0 or 1
+
 
 if (gadgetHandler:IsSyncedCode()) then
 
 --SYNCED
+
 
 local teamData={}
 
@@ -53,7 +58,14 @@ local function SetupCmdChangeAIDebugVerbosity()
 end
 
 
-local function DebugMessage(t,message)
+local function Log(message)
+	if S44_AI_Debug_Mode > 0 then
+		Spring.Echo("S44AI: " .. message)
+	end
+end
+
+
+local function LogTeam(t,message)
 	if S44_AI_Debug_Mode > 0 then
 		Spring.Echo("S44AI: Team[" .. t .. "] " .. message)
 	end
@@ -71,20 +83,20 @@ local function RemoveSelfIfNoTeam()
 		AIcount = AIcount + 1
 	end
 	if (AIcount == 0) then -- #teamData is 0 even when there are teams, and teamData=={} is untrue even when teamData={}
-		DebugMessage(gadget:GetInfo().name, "removing self")
+		Log("removing self (no team)")
 		gadgetHandler:RemoveGadget()
 	end
 end
 
 
 function gadget:GameStart()
-	DebugMessage(gadget:GetInfo().name, "GameStart!")
+	Log("gadget:GameStart")
 
 	-- Initialise AI for all team that are set to use it
 	for _,t in ipairs(Spring.GetTeamList()) do
 		local _,_,_,ai,side = Spring.GetTeamInfo(t)
 		if Spring.GetTeamLuaAI(t) == gadget:GetInfo().name then
-			DebugMessage(t, "assigned to " .. gadget:GetInfo().name)
+			LogTeam(t, "assigned to " .. gadget:GetInfo().name)
 			local _,_,_,_,_,at = Spring.GetTeamInfo(t)
 			teamData[t] = {
 				allyTeam = at,
@@ -98,12 +110,21 @@ end
 function gadget:GameFrame(f)
 	-- AI update
 	if f % 128 < .1 then
+		Log("gadget:GameFrame")
 		RemoveSelfIfNoTeam()
 	end
 end
 
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	Log("gadget:UnitCreated")
+	Log("unitID/unitDefID/unitTeam/builderID: " .. (unitID or "nil") .."/".. (unitDefID or "nil") .."/".. (unitTeam or "nil") .."/".. (builderID or "nil"))
+end
+
+
 else
 
 --UNSYNCED
+
 
 end
