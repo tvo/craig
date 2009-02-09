@@ -85,6 +85,8 @@ function gadget:Initialize()
 			teamData[t] = {
 				allyTeam = at,
 				side = side,
+				factories = {},
+				engineers = {},
 			}
 		end
 	end
@@ -119,13 +121,35 @@ function gadget:GameFrame(f)
 end
 
 
-local function GiveInitialBuildOrdersToHQ(unitID, unitDefID)
+local function GiveEngineerBuildOrderToHQ(unitID, unitDefID)
 	local unitDef = UnitDefs[unitDefID]
 	for _,bo in pairs(unitDef.buildOptions) do
 		if unitTypes.hqengineer[bo] then
 			Log("Engineer found!")
 			Spring.GiveOrderToUnit(unitID,-bo,{},{})
 			Spring.GiveOrderToUnit(unitID,-bo,{},{})
+			break
+		end
+	end
+end
+
+
+local function GetNiceBuildSite(pos)
+
+end
+
+
+local function GiveBuildOrderToEngineer(engID, engDefID, boDefID)
+
+end
+
+
+local function GiveBarrackBuildOrderToEngineer(engID, engDefID)
+	local engDef = UnitDefs[engDefID]
+	for _,bo in pairs(engDef.buildOptions) do
+		if unitTypes.barracks[bo] then
+			Log("Barracks found!")
+			GiveBuildOrderToEngineer(engID, engDefID, bo)
 		end
 	end
 end
@@ -137,7 +161,12 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if teamData[unitTeam] then
 		if unitTypes.headquarter[unitDefID] then
 			Log("It's my HQ!")
-			GiveInitialBuildOrdersToHQ(unitID, unitDefID)
+			teamData[unitTeam].factories[unitID] = true
+			GiveEngineerBuildOrderToHQ(unitID, unitDefID)
+		elseif unitTypes.hqengineer[unitDefID] then
+			Log("It's a HQ engineer!")
+			teamData[unitTeam].engineers[unitID] = true
+			GiveBarrackBuildOrderToEngineer(unitID, unitDefID)
 		end
 	end
 end

@@ -26,6 +26,12 @@ local unitTypes = {
 		"us_platoon_hq_assault",
 		"us_platoon_hq_rifle",
 	},
+	barracks = {
+		"gbrbarracks",
+		"gerbarracks",
+		"rusbarracks",
+		"usbarracks",
+	},
 }
 
 -------------------------------------------------
