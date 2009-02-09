@@ -29,6 +29,7 @@ if (gadgetHandler:IsSyncedCode()) then
 
 
 local teamData={}
+local unitTypes = include("LuaRules/Configs/S44_AI/unit_abstraction.lua")
 
 
 local function ChangeAIDebugVerbosity(cmd,line,words,player)
@@ -73,7 +74,21 @@ end
 
 
 function gadget:Initialize()
+	Log("gadget:Initialize")
 	SetupCmdChangeAIDebugVerbosity()
+
+	-- Initialise AI for all team that are set to use it
+	for _,t in ipairs(Spring.GetTeamList()) do
+		if Spring.GetTeamLuaAI(t) == gadget:GetInfo().name then
+			LogTeam(t, "assigned to " .. gadget:GetInfo().name)
+			local _,_,_,_,side,at = Spring.GetTeamInfo(t)
+			teamData[t] = {
+				allyTeam = at,
+				side = side,
+			}
+		end
+	end
+	-- RemoveSelfIfNoTeam() -- Somehow gadgetHandler:RemoveGadget() remove other gadgets when executed at GameStart stage. Moved to GameFrame
 end
 
 
@@ -90,20 +105,8 @@ end
 
 
 function gadget:GameStart()
+	-- this is executed AFTER headquarters / commander is spawned
 	Log("gadget:GameStart")
-
-	-- Initialise AI for all team that are set to use it
-	for _,t in ipairs(Spring.GetTeamList()) do
-		local _,_,_,ai,side = Spring.GetTeamInfo(t)
-		if Spring.GetTeamLuaAI(t) == gadget:GetInfo().name then
-			LogTeam(t, "assigned to " .. gadget:GetInfo().name)
-			local _,_,_,_,_,at = Spring.GetTeamInfo(t)
-			teamData[t] = {
-				allyTeam = at,
-			}
-		end
-	end
-	-- RemoveSelfIfNoTeam() -- Somehow gadgetHandler:RemoveGadget() remove other gadgets when executed at GameStart stage. Moved to GameFrame
 end
 
 
@@ -119,6 +122,11 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	Log("gadget:UnitCreated")
 	Log("unitID/unitDefID/unitTeam/builderID: " .. (unitID or "nil") .."/".. (unitDefID or "nil") .."/".. (unitTeam or "nil") .."/".. (builderID or "nil"))
+	if teamData[unitTeam] then
+		if unitTypes.headquarters[unitDefID] then
+			Log("It's my HQ!")
+		end
+	end
 end
 
 
