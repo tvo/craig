@@ -2,7 +2,7 @@
 
 -- unit names must be lowercase!
 local unitTypes = {
-	headquarters = {
+	headquarter = {
 		"ai_gbrhq",
 		"ai_gerhqbunker",
 		"ai_ushq",
@@ -10,10 +10,21 @@ local unitTypes = {
 		"gerhqbunker",
 		"ushq",
 	},
-	hqengineers = {
+	hqengineer = {
 		"gbrhqengineer",
 		"gerhqengineer",
 		"ushqengineer",
+	},
+	hqplatoon = {
+		"gbr_platoon_hq",
+		"gbr_platoon_hq_assault",
+		"gbr_platoon_hq_rifle",
+		"ger_platoon_hq",
+		"ger_platoon_hq_assault",
+		"ger_platoon_hq_rifle",
+		"us_platoon_hq",
+		"us_platoon_hq_assault",
+		"us_platoon_hq_rifle",
 	},
 }
 
