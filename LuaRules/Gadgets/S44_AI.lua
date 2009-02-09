@@ -119,12 +119,24 @@ function gadget:GameFrame(f)
 end
 
 
+local function GiveInitialBuildOrdersToHQ(unitID, unitDefID)
+	local unitDef = UnitDefs[unitDefID]
+	for _,bo in pairs(unitDef.buildOptions) do
+		if unitTypes.hqengineers[bo] then
+			Log("Engineer found!")
+			Spring.GiveOrderToUnit(unitID,-bo,{},{})
+		end
+	end
+end
+
+
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	Log("gadget:UnitCreated")
 	Log("unitID/unitDefID/unitTeam/builderID: " .. (unitID or "nil") .."/".. (unitDefID or "nil") .."/".. (unitTeam or "nil") .."/".. (builderID or "nil"))
 	if teamData[unitTeam] then
 		if unitTypes.headquarters[unitDefID] then
 			Log("It's my HQ!")
+			GiveInitialBuildOrdersToHQ(unitID, unitDefID)
 		end
 	end
 end
