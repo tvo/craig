@@ -3,63 +3,44 @@
 
 -- In-game, type /luarules s44ai in the console to toggle the ai debug messages
 
-NAME = "Spring: 1944 AI"
-
-
 function gadget:GetInfo()
 	return {
-		name = NAME .. " (" .. AI_NUMBER .. ")",
+		name = "Spring: 1944 AI",
 		desc = "An AI for Spring: 1944",
 		author = "Tobi Vollebregt",
 		date = "2009-02-08",
 		license = "GNU General Public License",
-  		layer = 82 + AI_NUMBER,
+  		layer = 82,
 		enabled = true
 	}
 end
 
-
+-- If not in synced code, ask for a quiet death.
+-- (Tried to make the AI unsynced one time but I seem to get no
+--  Unit events then so it's pointless... (no errors either))
 if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
 
-
-local aiNumber = AI_NUMBER
-for _,t in ipairs(Spring.GetTeamList()) do
-	if Spring.GetTeamLuaAI(t) == NAME then
-		aiNumber = aiNumber - 1
-		if aiNumber == 0 then
-			Spring.Echo("Team " .. t .. " assigned to " .. gadget:GetInfo().name)
-			local _,_,_,_,side,at = Spring.GetTeamInfo(t)
-			TEAM = t
-			ALLYTEAM = at
-			SIDE = side
-			break
+-- If no AIs are in the game, ask for a quiet death.
+local function CountBots()
+	local count = 0
+	for _,t in ipairs(Spring.GetTeamList()) do
+		if Spring.GetTeamLuaAI(t) == gadget:GetInfo().name then
+			count = count + 1
 		end
 	end
+	return count
 end
 
-if aiNumber ~= 0 then
+if CountBots() == 0 then
 	return false
 end
 
+--------------------------------------------------------------------------------
 
---Spring.Echo('teamNumber: ' .. teamNumber)
-
-function gadget:Initialize()
-	Spring.Echo("gadget:Initialize")
-	Spring.Echo("TEAM: " .. TEAM)
-	Spring.Echo("SIDE: " .. SIDE)
-end
-
-function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	Spring.Echo("gadget:UnitCreated")
-	if unitTeam == TEAM then
-		Spring.Echo("TEAM: " .. TEAM .. ": It's mine!")
-	end
-end
-
---[[
+-- includes
+include("LuaRules/Gadgets/S44_AI/team.lua")
 
 -- constants
 local GAIA_TEAM_ID = Spring.GetGaiaTeamID()
@@ -67,10 +48,7 @@ local GAIA_TEAM_ID = Spring.GetGaiaTeamID()
 -- globals
 local S44_AI_Debug_Mode = 1 -- Must be 0 or 1
 
---SYNCED
-
-
-local teamData={}
+local team = {}
 local unitTypes = include("LuaRules/Configs/S44_AI/unit_abstraction.lua")
 
 
@@ -101,152 +79,67 @@ local function SetupCmdChangeAIDebugVerbosity()
 end
 
 
-local function Log(message)
+function Log(message)
 	if S44_AI_Debug_Mode > 0 then
 		Spring.Echo("S44AI: " .. message)
 	end
 end
 
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--
+--  The call-in routines
+--
 
-local function LogTeam(t,message)
-	if S44_AI_Debug_Mode > 0 then
-		Spring.Echo("S44AI: Team[" .. t .. "] " .. message)
-	end
-end
-
+-- Execution order:
+--  gadget:Initialize
+--  gadget:GamePreload
+--  gadget:UnitCreated (for each HQ / comm)
+--  gadget:GameStart
 
 function gadget:Initialize()
 	Log("gadget:Initialize")
 	SetupCmdChangeAIDebugVerbosity()
+end
 
+function gadget:GamePreload()
+	-- This is executed BEFORE headquarters / commander is spawned
+	Log("gadget:GamePreload")
 	-- Initialise AI for all team that are set to use it
 	for _,t in ipairs(Spring.GetTeamList()) do
 		if Spring.GetTeamLuaAI(t) == gadget:GetInfo().name then
-			LogTeam(t, "assigned to " .. gadget:GetInfo().name)
 			local _,_,_,_,side,at = Spring.GetTeamInfo(t)
-			teamData[t] = {
-				allyTeam = at,
-				side = side,
-				factories = {},
-				engineers = {},
-			}
+			team[t] = CreateTeam(t)
+			team[t]:Initialize(t,at,side)
 		end
 	end
-	-- RemoveSelfIfNoTeam() -- Somehow gadgetHandler:RemoveGadget() remove other gadgets when executed at GameStart stage. Moved to GameFrame
 end
-
-
-local function RemoveSelfIfNoTeam()
-	local AIcount=0
-	for t,td in pairs(teamData) do
-		AIcount = AIcount + 1
-	end
-	if (AIcount == 0) then -- #teamData is 0 even when there are teams, and teamData=={} is untrue even when teamData={}
-		Log("removing self (no team)")
-		gadgetHandler:RemoveGadget()
-	end
-end
-
 
 function gadget:GameStart()
-	-- this is executed AFTER headquarters / commander is spawned
+	-- This is executed AFTER headquarters / commander is spawned
 	Log("gadget:GameStart")
 end
-
 
 function gadget:GameFrame(f)
 	-- AI update
 	if f % 128 < .1 then
 		Log("gadget:GameFrame")
-		RemoveSelfIfNoTeam()
 	end
 end
 
-
-local function GiveEngineerBuildOrderToHQ(unitID, unitDefID)
-	local unitDef = UnitDefs[unitDefID]
-	for _,bo in pairs(unitDef.buildOptions) do
-		if unitTypes.hqengineer[bo] then
-			Log("Engineer found!")
-			Spring.GiveOrderToUnit(unitID,-bo,{},{})
-			Spring.GiveOrderToUnit(unitID,-bo,{},{})
-			break
-		end
-	end
-end
-
-
-local function ClosestBuildSite(unitDefID, cx, cy, cz, facing)
-	for dist=200,1000,100 do
-		local x,z = cx + math.random(-dist, dist), cz + math.random(-dist, dist)
-		local test = Spring.TestBuildOrder(unitDefID, x, cy, z, facing)
-		if test >= 1 then
-			return x, cy, z
-		end
-	end
-end
-
-
-local function GiveBuildOrderToEngineer(engID, engDefID, boDefID)
-	local facing = 0
-	local x, y, z = Spring.GetUnitPosition(engID)
-	x, y, z = ClosestBuildSite(boDefID, x, y, z, facing)
-	if x then
-		Spring.GiveOrderToUnit(engID, -boDefID, { x, y, z, facing }, {})
-	end
-end
-
-
-local function GiveBarrackBuildOrderToEngineer(engID, engDefID)
-	local engDef = UnitDefs[engDefID]
-	for _,bo in pairs(engDef.buildOptions) do
-		if unitTypes.barracks[bo] then
-			Log("Barracks found!")
-			GiveBuildOrderToEngineer(engID, engDefID, bo)
-		end
-	end
-end
-
+--------------------------------------------------------------------------------
+--
+--  Unit call-ins
+--
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	Log("gadget:UnitCreated")
-	Log("unitID/unitDefID/unitTeam/builderID: " .. (unitID or "nil") .."/".. (unitDefID or "nil") .."/".. (unitTeam or "nil") .."/".. (builderID or "nil"))
-	if teamData[unitTeam] then
-		if unitTypes.headquarter[unitDefID] then
-			Log("It's my HQ!")
-			teamData[unitTeam].factories[unitID] = true
-			GiveEngineerBuildOrderToHQ(unitID, unitDefID)
-		elseif unitTypes.hqengineer[unitDefID] then
-			Log("It's a HQ engineer!")
-			teamData[unitTeam].engineers[unitID] = true
-			GiveBarrackBuildOrderToEngineer(unitID, unitDefID)
-		end
+	if team[unitTeam] then
+		team[unitTeam]:UnitCreated(unitID, unitDefID, builderID)
 	end
+	return
 end
 
-
--- this may be called by engine from inside Spring.GiveOrderToUnit (if unit limit is reached)
--- TODO: that will currently spam LUA errors....
+-- This may be called by engine from inside Spring.GiveOrderToUnit (e.g. if unit limit is reached)
 function gadget:UnitIdle(unitID, unitDefID, unitTeam)
-	Log("gadget:UnitIdle")
-	Log("unitID/unitDefID/unitTeam: " .. (unitID or "nil") .."/".. (unitDefID or "nil") .."/".. (unitTeam or "nil") )
-	if teamData[unitTeam] then
-		if unitTypes.headquarter[unitDefID] then
-			Log("It's my HQ!")
-			teamData[unitTeam].factories[unitID] = true
-			GiveEngineerBuildOrderToHQ(unitID, unitDefID)
-		elseif unitTypes.hqengineer[unitDefID] then
-			Log("It's a HQ engineer!")
-			teamData[unitTeam].engineers[unitID] = true
-			GiveBarrackBuildOrderToEngineer(unitID, unitDefID)
-		end
-	end
+	return
 end
-
-else
-
---UNSYNCED
--- tried to make the AI unsynced sometime but get no Unit* events then so it's pointless.. (and no errors either)
-
-end
-]]--
