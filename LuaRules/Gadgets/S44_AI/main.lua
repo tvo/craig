@@ -3,27 +3,69 @@
 
 -- In-game, type /luarules s44ai in the console to toggle the ai debug messages
 
+NAME = "Spring: 1944 AI"
+
+
 function gadget:GetInfo()
 	return {
-		name = "Spring: 1944 AI",
+		name = NAME .. " (" .. AI_NUMBER .. ")",
 		desc = "An AI for Spring: 1944",
 		author = "Tobi Vollebregt",
 		date = "2009-02-08",
 		license = "GNU General Public License",
-		layer = 82,
+  		layer = 82 + AI_NUMBER,
 		enabled = true
 	}
 end
 
+
+if (not gadgetHandler:IsSyncedCode()) then
+	return false
+end
+
+
+local aiNumber = AI_NUMBER
+for _,t in ipairs(Spring.GetTeamList()) do
+	if Spring.GetTeamLuaAI(t) == NAME then
+		aiNumber = aiNumber - 1
+		if aiNumber == 0 then
+			Spring.Echo("Team " .. t .. " assigned to " .. gadget:GetInfo().name)
+			local _,_,_,_,side,at = Spring.GetTeamInfo(t)
+			TEAM = t
+			ALLYTEAM = at
+			SIDE = side
+			break
+		end
+	end
+end
+
+if aiNumber ~= 0 then
+	return false
+end
+
+
+--Spring.Echo('teamNumber: ' .. teamNumber)
+
+function gadget:Initialize()
+	Spring.Echo("gadget:Initialize")
+	Spring.Echo("TEAM: " .. TEAM)
+	Spring.Echo("SIDE: " .. SIDE)
+end
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	Spring.Echo("gadget:UnitCreated")
+	if unitTeam == TEAM then
+		Spring.Echo("TEAM: " .. TEAM .. ": It's mine!")
+	end
+end
+
+--[[
 
 -- constants
 local GAIA_TEAM_ID = Spring.GetGaiaTeamID()
 
 -- globals
 local S44_AI_Debug_Mode = 1 -- Must be 0 or 1
-
-
-if (gadgetHandler:IsSyncedCode()) then
 
 --SYNCED
 
@@ -207,3 +249,4 @@ else
 -- tried to make the AI unsynced sometime but get no Unit* events then so it's pointless.. (and no errors either)
 
 end
+]]--
