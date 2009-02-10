@@ -134,13 +134,24 @@ local function GiveEngineerBuildOrderToHQ(unitID, unitDefID)
 end
 
 
-local function GetNiceBuildSite(pos)
-
+local function ClosestBuildSite(unitDefID, cx, cy, cz, facing)
+	for dist=200,1000,100 do
+		local x,z = cx + math.random(-dist, dist), cz + math.random(-dist, dist)
+		local test = Spring.TestBuildOrder(unitDefID, x, cy, z, facing)
+		if test >= 1 then
+			return x, cy, z
+		end
+	end
 end
 
 
 local function GiveBuildOrderToEngineer(engID, engDefID, boDefID)
-
+	local facing = 0
+	local x, y, z = Spring.GetUnitPosition(engID)
+	x, y, z = ClosestBuildSite(boDefID, x, y, z, facing)
+	if x then
+		Spring.GiveOrderToUnit(engID, -boDefID, { x, y, z, facing }, {})
+	end
 end
 
 
@@ -172,9 +183,27 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 
+-- this may be called by engine from inside Spring.GiveOrderToUnit (if unit limit is reached)
+-- TODO: that will currently spam LUA errors....
+function gadget:UnitIdle(unitID, unitDefID, unitTeam)
+	Log("gadget:UnitIdle")
+	Log("unitID/unitDefID/unitTeam: " .. (unitID or "nil") .."/".. (unitDefID or "nil") .."/".. (unitTeam or "nil") )
+	if teamData[unitTeam] then
+		if unitTypes.headquarter[unitDefID] then
+			Log("It's my HQ!")
+			teamData[unitTeam].factories[unitID] = true
+			GiveEngineerBuildOrderToHQ(unitID, unitDefID)
+		elseif unitTypes.hqengineer[unitDefID] then
+			Log("It's a HQ engineer!")
+			teamData[unitTeam].engineers[unitID] = true
+			GiveBarrackBuildOrderToEngineer(unitID, unitDefID)
+		end
+	end
+end
+
 else
 
 --UNSYNCED
-
+-- tried to make the AI unsynced sometime but get no Unit* events then so it's pointless.. (and no errors either)
 
 end
