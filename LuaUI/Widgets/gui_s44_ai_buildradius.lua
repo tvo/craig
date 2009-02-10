@@ -2,12 +2,12 @@ local versionNumber = "v1.9"
 
 function widget:GetInfo()
 	return {
-		name = "1944 Supply Radius",
-		desc = versionNumber .. " Supply radius indicator for Spring 1944. Commands: \luaui s44_supplyradius_"
+		name = "1944 AI Build Radius",
+		desc = versionNumber .. " AI build radius indicator for Spring 1944. Commands: \luaui s44_supplyradius_"
 				.. "show[always | rollover | select] to change display options"
 				.. "viewdistance [number] to change view distance (negative for fixed point size)"
 				.. "minimapsize to change minimap point size (nonpositive to disable)",
-		author = "Evil4Zerggin",
+		author = "Evil4Zerggin (adapted for AI build radius by Tobi Vollebregt)",
 		date = "5 January 2009",
 		license = "GNU LGPL, v2.1 or later",
 		layer = 1,
@@ -20,8 +20,8 @@ end
 ------------------------------------------------
 local viewDistance = 8192 --distance at which dots start getting bigger; fixed size if negative
 local minimapSize = 1
-local color = {1, 1, 0, 0.75}
-local previewColor = {1, 1, 0, 0.25}
+local color = {1, 0, 0, 0.75}
+local previewColor = {1, 0, 0, 0.25}
 local showAlways = false
 local showRollover = true
 local showSelect = true
@@ -128,7 +128,7 @@ local strSub = string.sub
 local MAP_SIZE_X = Game.mapSizeX
 local MAP_SIZE_Z = Game.mapSizeZ
 
-local DEFAULT_SUPPLY_RANGE = 300
+local DEFAULT_SUPPLY_RANGE = 250
 
 ------------------------------------------------
 --util
@@ -616,8 +616,8 @@ function widget:Initialize()
 	local inUse = false
 	for unitDefID=1,#UnitDefs do
 		local unitDef = UnitDefs[unitDefID]
-		if (unitDef.customParams.ammosupplier == "1" and unitDef.speed == 0) then
-			local radius = unitDef.customParams.supplyrange or DEFAULT_SUPPLY_RANGE
+		if (unitDef.humanName ~= "Flag" and unitDef.speed == 0) then
+			local radius = DEFAULT_SUPPLY_RANGE
 			local numSegments = ceil(radius / segmentLength)
 			local segmentAngle = 2 * PI / numSegments
 			local oddX, oddZ
@@ -629,13 +629,6 @@ function widget:Initialize()
 			end
 			supplyDefInfos[unitDefID] = {radius, numSegments, segmentAngle, oddX, oddZ}
 			inUse = true
-		end
-		if unitDef.tooltip and (strFind(unitDef.tooltip, "Transport Truck") or strFind(unitDef.tooltip, "Lorry Truck")) then
-			generalTruckDefIDs[unitDefID] = true
-		end
-		if unitDef.humanName and strFind(unitDef.humanName, "Halftrack") and not strFind(unitDef.humanName, "Unloaded") then
-			--Spring.Echo(unitDef.humanName)
-			supplyTruckDefIDs[unitDefID] = true
 		end
 	end
 
