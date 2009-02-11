@@ -15,6 +15,7 @@ function gadget:GetInfo()
 	}
 end
 
+do
 -- If not in synced code, ask for a quiet death.
 -- (Tried to make the AI unsynced one time but I seem to get no
 --  Unit events then so it's pointless... (no errors either))
@@ -36,6 +37,7 @@ end
 if CountBots() == 0 then
 	return false
 end
+end
 
 --------------------------------------------------------------------------------
 
@@ -50,7 +52,6 @@ local GAIA_TEAM_ID = Spring.GetGaiaTeamID()
 local S44_AI_Debug_Mode = 1 -- Must be 0 or 1
 
 local team = {}
-
 
 local function ChangeAIDebugVerbosity(cmd,line,words,player)
 	local lvl = tonumber(words[1])
@@ -68,7 +69,6 @@ local function ChangeAIDebugVerbosity(cmd,line,words,player)
 	return true
 end
 
-
 local function SetupCmdChangeAIDebugVerbosity()
 	local cmd,func,help
 	cmd  = "s44ai"
@@ -77,7 +77,6 @@ local function SetupCmdChangeAIDebugVerbosity()
 	gadgetHandler:AddChatAction(cmd,func,help)
 	Script.AddActionFallback(cmd .. ' ',help)
 end
-
 
 function Log(message)
 	if S44_AI_Debug_Mode > 0 then
@@ -109,8 +108,7 @@ function gadget:GamePreload()
 	for _,t in ipairs(Spring.GetTeamList()) do
 		if Spring.GetTeamLuaAI(t) == gadget:GetInfo().name then
 			local _,_,_,_,side,at = Spring.GetTeamInfo(t)
-			team[t] = CreateTeam(t)
-			team[t]:Initialize(t,at,side)
+			team[t] = CreateTeam(t, at, side)
 		end
 	end
 end
@@ -134,31 +132,31 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if team[unitTeam] then
-		team[unitTeam]:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+		team[unitTeam].UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if team[unitTeam] then
-		team[unitTeam]:UnitFinished(unitID, unitDefID, unitTeam)
+		team[unitTeam].UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	if team[unitTeam] then
-		team[unitTeam]:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+		team[unitTeam].UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	end
 end
 
 function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	if team[unitTeam] then
-		team[unitTeam]:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+		team[unitTeam].UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	end
 end
 
 function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	if team[unitTeam] then
-		team[unitTeam]:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+		team[unitTeam].UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	end
 end
 
