@@ -18,8 +18,8 @@ function team.UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 function CreateTeam(myTeamID, myAllyTeamID, mySide)
 
 local team = {}
-local unitTypes = include("LuaRules/Configs/S44_AI/unit_abstraction.lua")
 local buildsiteFinder = CreateBuildsiteFinder(myTeamID)
+local buildOrder = gadget.buildOrder
 
 local Log = function (message)
 	Log("Team[" .. myTeamID .. "] " .. message)
@@ -32,47 +32,25 @@ end
 
 -- Currently unitTeam always equals myTeamID (enforced in gadget)
 
-local function GiveEngineerBuildOrderToHQ(unitID, unitDefID)
-	local unitDef = UnitDefs[unitDefID]
-	for _,bo in pairs(unitDef.buildOptions) do
-		if unitTypes.hqengineer[bo] then
-			Spring.GiveOrderToUnit(unitID,-bo,{},{})
-		end
-	end
-end
-
-local function GiveBuildOrderToEngineer(engID, engDefID, boDefID)
-	local x, y, z, facing = buildsiteFinder.FindBuildsite(engID, boDefID)
-	if x then
-		Spring.GiveOrderToUnit(engID, -boDefID, { x, y, z, facing }, {})
-	else
-		Log("Could not find buildsite for " .. UnitDefs[boDefID].humanName)
-	end
-end
-
-local function GiveBarracksBuildOrderToEngineer(engID, engDefID)
-	local engDef = UnitDefs[engDefID]
-	for _,bo in pairs(engDef.buildOptions) do
-		if unitTypes.barracks[bo] then
-			GiveBuildOrderToEngineer(engID, engDefID, bo)
-		end
-	end
-end
-
 function team.UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	buildsiteFinder.UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if unitTypes.headquarter[unitDefID] then
-		Log("It's my HQ!")
-		GiveEngineerBuildOrderToHQ(unitID, unitDefID)
-		GiveEngineerBuildOrderToHQ(unitID, unitDefID)
-	elseif unitTypes.hqengineer[unitDefID] then
-		Log("It's a HQ engineer!")
-		GiveBarracksBuildOrderToEngineer(unitID, unitDefID)
-	end
 end
 
 function team.UnitFinished(unitID, unitDefID, unitTeam)
-	--buildsiteFinder.UnitFinished(unitID, unitDefID, unitTeam)
+	Log("UnitFinished "..unitID.."/"..unitDefID.."/"..unitTeam)
+	if buildOrder[unitDefID] then
+		for _,bo in ipairs(buildOrder[unitDefID]) do
+			Log("Queueing " .. UnitDefs[bo].humanName)
+			if UnitDefs[bo].speed == 0 then
+				-- TODO: give build orders only after last building is finished building
+				-- TODO: group build orders together (one construction site at a time)
+				local x,y,z,facing = buildsiteFinder.FindBuildsite(unitID, bo)
+				Spring.GiveOrderToUnit(unitID, -bo, {x,y,z,facing}, {"shift"})
+			else
+				Spring.GiveOrderToUnit(unitID, -bo, {}, {})
+			end
+		end
+	end
 end
 
 function team.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)

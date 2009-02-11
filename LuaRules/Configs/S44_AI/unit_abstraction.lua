@@ -1,61 +1,43 @@
 -- Author: Tobi Vollebregt
 
 -- unit names must be lowercase!
-local unitTypes = {
-	headquarter = {
-		"ai_gbrhq",
-		"ai_gerhqbunker",
-		"ai_ushq",
-		"gbrhq",
-		"gerhqbunker",
-		"ushq",
-	},
-	hqengineer = {
+local buildOrder = {
+	gbrhq = {
 		"gbrhqengineer",
-		"gerhqengineer",
-		"ushqengineer",
-	},
-	hqplatoon = {
+		"gbrhqengineer",
 		"gbr_platoon_hq",
-		"gbr_platoon_hq_assault",
-		"gbr_platoon_hq_rifle",
-		"ger_platoon_hq",
-		"ger_platoon_hq_assault",
-		"ger_platoon_hq_rifle",
-		"us_platoon_hq",
-		"us_platoon_hq_assault",
-		"us_platoon_hq_rifle",
+		"gbr_platoon_hq",
+		"gbr_platoon_hq",
 	},
-	barracks = {
+	gbrhqengineer = {
 		"gbrbarracks",
-		"gerbarracks",
-		"rusbarracks",
-		"usbarracks",
+		"gbrstorage",
 	},
 }
 
--------------------------------------------------
--- convert to sets with unitdef.id as key
 
---[[
-for k,v in pairs(UnitDefNames) do
-	Spring.Echo("UnitDefNames["..k.."]")
-end
-]]--
+--------------------------------------------------------------------------------
+--
+--  Convert to sets with unitdef.id as key
+--
 
-local unitTypesById = {}
-
-for tname,t in pairs(unitTypes) do
-	local set = {}
-	for _,name in pairs(t) do
-		local unitdef = UnitDefNames[name]
-		if unitdef then
-			set[unitdef.id] = true;
-		else
-			error("Bad unitname: " .. name)
-		end
+local function UnitDefNameToID(name)
+	local unitDef = UnitDefNames[name]
+	if unitDef then
+		return unitDef.id
+	else
+		error("Bad unitname: " .. name)
 	end
-	unitTypesById[tname] = set
 end
 
-return unitTypesById
+local buildOrderById = {}
+
+for tname,t in pairs(buildOrder) do
+	local array = {}
+	for i,name in ipairs(t) do
+		array[i] = UnitDefNameToID(name)
+	end
+	buildOrderById[UnitDefNameToID(tname)] = array
+end
+
+gadget.buildOrder = buildOrderById

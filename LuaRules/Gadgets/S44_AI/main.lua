@@ -42,6 +42,7 @@ end
 --------------------------------------------------------------------------------
 
 -- includes
+include("LuaRules/Configs/S44_AI/unit_abstraction.lua")
 include("LuaRules/Gadgets/S44_AI/buildsite.lua")
 include("LuaRules/Gadgets/S44_AI/team.lua")
 
