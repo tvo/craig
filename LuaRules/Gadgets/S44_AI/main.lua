@@ -40,6 +40,7 @@ end
 --------------------------------------------------------------------------------
 
 -- includes
+include("LuaRules/Gadgets/S44_AI/buildsite.lua")
 include("LuaRules/Gadgets/S44_AI/team.lua")
 
 -- constants
@@ -49,7 +50,6 @@ local GAIA_TEAM_ID = Spring.GetGaiaTeamID()
 local S44_AI_Debug_Mode = 1 -- Must be 0 or 1
 
 local team = {}
-local unitTypes = include("LuaRules/Configs/S44_AI/unit_abstraction.lua")
 
 
 local function ChangeAIDebugVerbosity(cmd,line,words,player)
@@ -98,13 +98,13 @@ end
 --  gadget:GameStart
 
 function gadget:Initialize()
-	Log("gadget:Initialize")
+	--Log("gadget:Initialize")
 	SetupCmdChangeAIDebugVerbosity()
 end
 
 function gadget:GamePreload()
 	-- This is executed BEFORE headquarters / commander is spawned
-	Log("gadget:GamePreload")
+	--Log("gadget:GamePreload")
 	-- Initialise AI for all team that are set to use it
 	for _,t in ipairs(Spring.GetTeamList()) do
 		if Spring.GetTeamLuaAI(t) == gadget:GetInfo().name then
@@ -117,14 +117,14 @@ end
 
 function gadget:GameStart()
 	-- This is executed AFTER headquarters / commander is spawned
-	Log("gadget:GameStart")
+	--Log("gadget:GameStart")
 end
 
 function gadget:GameFrame(f)
 	-- AI update
-	if f % 128 < .1 then
-		Log("gadget:GameFrame")
-	end
+	--if f % 128 < .1 then
+	--	Log("gadget:GameFrame")
+	--end
 end
 
 --------------------------------------------------------------------------------
@@ -134,12 +134,34 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if team[unitTeam] then
-		team[unitTeam]:UnitCreated(unitID, unitDefID, builderID)
+		team[unitTeam]:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
-	return
+end
+
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	if team[unitTeam] then
+		team[unitTeam]:UnitFinished(unitID, unitDefID, unitTeam)
+	end
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	if team[unitTeam] then
+		team[unitTeam]:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	end
+end
+
+function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+	if team[unitTeam] then
+		team[unitTeam]:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+	end
+end
+
+function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+	if team[unitTeam] then
+		team[unitTeam]:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+	end
 end
 
 -- This may be called by engine from inside Spring.GiveOrderToUnit (e.g. if unit limit is reached)
 function gadget:UnitIdle(unitID, unitDefID, unitTeam)
-	return
 end
