@@ -40,7 +40,7 @@ function team:GiveEngineerBuildOrderToHQ(unitID, unitDefID)
 end
 
 function team:GiveBuildOrderToEngineer(engID, engDefID, boDefID)
-	local x, y, z, facing = self.buildsiteFinder:FindBuildsite(engID, boDefID)
+	local x, y, z, facing = self.buildsiteFinder.FindBuildsite(engID, boDefID)
 	if x then
 		Spring.GiveOrderToUnit(engID, -boDefID, { x, y, z, facing }, {})
 	else
@@ -58,7 +58,7 @@ function team:GiveBarracksBuildOrderToEngineer(engID, engDefID)
 end
 
 function team:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	self.buildsiteFinder:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	self.buildsiteFinder.UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if unitTypes.headquarter[unitDefID] then
 		self:Log("It's my HQ!")
 		self:GiveEngineerBuildOrderToHQ(unitID, unitDefID)
@@ -70,17 +70,19 @@ function team:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 function team:UnitFinished(unitID, unitDefID, unitTeam)
-	self.buildsiteFinder:UnitFinished(unitID, unitDefID, unitTeam)
+	--self.buildsiteFinder.UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function team:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	self.buildsiteFinder:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	self.buildsiteFinder.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 end
 
 function team:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	self.buildsiteFinder:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+	self:Log("UnitTaken")
+	self.buildsiteFinder.UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function team:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	self.buildsiteFinder:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+	self:Log("UnitGiven")
+	self.buildsiteFinder.UnitCreated(unitID, unitDefID, unitTeam)
 end

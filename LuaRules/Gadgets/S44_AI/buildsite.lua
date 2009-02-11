@@ -1,9 +1,28 @@
--- Author: Tobi Vollebregt (10 feb 2009)
--- Author: Evil4Zerggin (gui_s44_supplyradius.lua version 1.9, 5 jan 2009)
+-- Author: Tobi Vollebregt (11 feb 2009)
+-- Author: Evil4Zerggin (gui_s44_supplyradius.lua version 1.9, 5 jan 2009, SVN rev 930)
 -- License: "GNU LGPL, v2.1 or later"
 
--- This class is implemented as a single function returning a table with public
--- interface methods.  Private data is stored in the function's closure.
+--[[
+This class is implemented as a single function returning a table with public
+interface methods.  Private data is stored in the function's closure.
+
+Public interface:
+
+local buildsiteFinder = CreateBuildsiteFinder(myTeamID)
+
+function buildsiteFinder.UnitCreated(unitID, unitDefID, unitTeam)
+	Must be called for each unit entering the team
+	(e.g. from gadget:UnitCreated, gadget:UnitGiven)
+
+function buildsiteFinder.UnitDestroyed(unitID, unitDefID, unitTeam)
+	Must be called for each unit leaving the team
+	(e.g. from gadget:UnitDestroyed, gadget:UnitTaken)
+
+function buildsiteFinder.FindBuildsite(builderID, unitDefID)
+	Returns x, y, z, facing if it finds a suitable buildsite for unitDefID.
+	builderID is currently used only to determine optimal build facing.
+	Returns nil if it can not find a suitable buildsite.
+--]]
 
 function CreateBuildsiteFinder(myTeamID)
 
@@ -15,6 +34,8 @@ local widget = {}
 --config
 ------------------------------------------------
 local segmentLength = 5
+
+local DEFAULT_SUPPLY_RANGE = 250
 
 ------------------------------------------------
 --vars
@@ -32,20 +53,15 @@ local supplyDefInfos = {}
 --format: unitID = {[1] = bool, [2] = bool, ... [numSegments] = bool, r = number, numSegments = number, segmentAngle = number, x = number, y = number, z = number}
 local supplyInfos = {}
 
---format: unitID = {supplyDefInfo = table, x = number, z = number}
-local inBuildSupplyInfos = {}
-
 ------------------------------------------------
 --speedups and constants
 ------------------------------------------------
-local Echo = Spring.Echo
 local GetUnitSeparation = Spring.GetUnitSeparation
 local GetUnitPosition = Spring.GetUnitPosition
 local AreTeamsAllied = Spring.AreTeamsAllied
 local GetUnitDefID = Spring.GetUnitDefID
 local GetUnitTeam = Spring.GetUnitTeam
 local GetGroundHeight = Spring.GetGroundHeight
-local GetUnitIsStunned = Spring.GetUnitIsStunned
 local GetTeamUnits = Spring.GetTeamUnits
 local TestBuildOrder = Spring.TestBuildOrder
 
@@ -54,8 +70,6 @@ local strSub = string.sub
 
 local MAP_SIZE_X = Game.mapSizeX
 local MAP_SIZE_Z = Game.mapSizeZ
-
-local DEFAULT_SUPPLY_RANGE = 250
 
 ------------------------------------------------
 --util
@@ -167,13 +181,12 @@ local function UpdateRemove(unitID, supplyInfo)
 end
 
 local function Reset()
-	inBuildSupplyInfos = {}
 	supplyInfos= {}
 
 	local allUnits = GetTeamUnits(myTeamID)
 	for i=1,#allUnits do
 		local unitID = allUnits[i]
-		widget:UnitCreated(unitID, GetUnitDefID(unitID), GetUnitTeam(unitID))
+		widget.UnitCreated(unitID, GetUnitDefID(unitID), GetUnitTeam(unitID))
 	end
 end
 
@@ -215,38 +228,7 @@ end
 --callins
 ------------------------------------------------
 
-function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	--Echo("UnitCreated")
-
-	local _, _, inBuild = GetUnitIsStunned(unitID)
-	if not inBuild then
-		widget:UnitFinished(unitID, unitDefID, unitTeam)
-		return
-	end
-
-	if (not AreTeamsAllied(unitTeam, myTeamID)) then
-		return
-	end
-
-	local supplyDefInfo = supplyDefInfos[unitDefID]
-
-	if (not supplyDefInfo) then return end
-
-	--enter info
-	local supplyInfo = {}
-	supplyInfo.supplyDefInfo = supplyDefInfo
-
-	local x, _, z = GetUnitPosition(unitID)
-	supplyInfo.x, supplyInfo.z = x, z
-
-	inBuildSupplyInfos[unitID] = supplyInfo
-end
-
-function widget:UnitFinished(unitID, unitDefID, unitTeam)
-	--Echo("UnitFinished")
-
-	inBuildSupplyInfos[unitID] = nil
-
+function widget.UnitCreated(unitID, unitDefID, unitTeam)
 	if (not AreTeamsAllied(unitTeam, myTeamID)) then
 		return
 	end
@@ -268,36 +250,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	supplyInfos[unitID] = supplyInfo
 end
 
-function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	--Echo("UnitGiven")
-
-	local _, _, inBuild = GetUnitIsStunned(unitID)
-	if inBuild then
-		widget:UnitCreated(unitID, unitDefID, unitTeam)
-	else
-		widget:UnitFinished(unitID, unitDefID, unitTeam)
-	end
-end
-
-function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	--Echo("UnitTaken")
-
-	local _, _, inBuild = GetUnitIsStunned(unitID)
-	if inBuild then
-		widget:UnitCreated(unitID, unitDefID, unitTeam)
-	else
-		widget:UnitFinished(unitID, unitDefID, unitTeam)
-	end
-end
-
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	--Echo("UnitDestroyed")
-
-	local inBuildSupplyInfo = inBuildSupplyInfos[unitID]
-	if inBuildSupplyInfo then
-		inBuildSupplyInfos[unitID] = nil
-	end
-
+function widget.UnitDestroyed(unitID, unitDefID, unitTeam)
 	local supplyInfo = supplyInfos[unitID]
 	if supplyInfo then
 		supplyInfos[unitID] = nil
@@ -305,7 +258,7 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	end
 end
 
-function widget:Initialize()
+local function Initialize()
 	for unitDefID=1,#UnitDefs do
 		local unitDef = UnitDefs[unitDefID]
 		if (unitDef.humanName ~= "Flag" and unitDef.speed == 0) then
@@ -332,16 +285,16 @@ end
 
 -- The implementation of this function is copied from KP_AI_31.lua
 -- (Kernel Panic AI, KDR_11k (David Becker), modified by zwzsg)
-local function FindFacing(x, z)
+local function FindFacing(x, y, z)
 	local dir
-	if math.abs(Game.mapSizeX - 2*x) > math.abs(Game.mapSizeZ - 2*z) then
-		if (2*x>Game.mapSizeX) then
+	if math.abs(MAP_SIZE_X - 2*x) > math.abs(MAP_SIZE_Z - 2*z) then
+		if (2*x>MAP_SIZE_X) then
 			dir=3
 		else
 			dir=1
 		end
 	else
-		if (2*z>Game.mapSizeZ) then
+		if (2*z>MAP_SIZE_Z) then
 			dir=2
 		else
 			dir=0
@@ -353,12 +306,11 @@ end
 -- Wee, the first function in this file written by myself!
 -- This is main public method; it finds good buildsites.
 -- returns x,y,z,facing, or nil if it can not find any build position
-function widget:FindBuildsite(builderID, unitDefID)
+function widget.FindBuildsite(builderID, unitDefID)
 	local vertices = DrawMain()
 	local count = vertices.vi
 	-- assume builder position is representative for base position
-	local x, _, z = GetUnitPosition(builderID)
-	local facing = FindFacing(x, z)
+	local facing = FindFacing(GetUnitPosition(builderID))
 	-- repeatedly try a random vertex until either we found one we can build on,
 	-- or we tried as many times as there are vertices
 	local watchdog = 0
@@ -377,7 +329,7 @@ function widget:FindBuildsite(builderID, unitDefID)
 	return nil
 end
 
-widget:Initialize()
+Initialize()
 return widget
 
 end
