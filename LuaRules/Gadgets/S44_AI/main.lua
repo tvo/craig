@@ -121,9 +121,11 @@ end
 
 function gadget:GameFrame(f)
 	-- AI update
-	--if f % 128 < .1 then
-	--	Log("gadget:GameFrame")
-	--end
+	if f % 128 < .1 then
+		for _,t in pairs(team) do
+			t.GameFrame(f)
+		end
+	end
 end
 
 --------------------------------------------------------------------------------

@@ -1,7 +1,8 @@
 -- Author: Tobi Vollebregt
 
 -- unit names must be lowercase!
-local buildOrder = {
+
+local unitBuildOrder = {
 	gbrhq = {
 		"gbrhqengineer",
 		"gbrhqengineer",
@@ -9,19 +10,36 @@ local buildOrder = {
 		"gbr_platoon_hq",
 		"gbr_platoon_hq",
 	},
-	gbrhqengineer = {
-		"gbrbarracks",
-		"gbrstorage",
-	},
 }
 
+local baseBuildOrder = {
+	"gbrbarracks",
+	"gbrbarracks",
+	"gbrstorage",
+	"gbrbarracks",
+	--TODO: vehicle yard, towed gun yard, tank yard
+}
+
+local baseBuilders = {
+	"gbrhqengineer",
+	"gbrengineer",
+	"gbrmatadorengvehicle",
+	"gerengineer",
+	"gerhqengineer",
+	--TODO: eng vehicle
+	"rusengineer",
+	--TODO: commisar, eng vehicle
+	"ushqengineer",
+	"usengineer",
+	"usgmcengvehicle",
+}
 
 --------------------------------------------------------------------------------
 --
---  Convert to sets with unitdef.id as key
+--  Convert names to unitDefIDs
 --
 
-local function UnitDefNameToID(name)
+local function NameToID(name)
 	local unitDef = UnitDefNames[name]
 	if unitDef then
 		return unitDef.id
@@ -30,14 +48,27 @@ local function UnitDefNameToID(name)
 	end
 end
 
-local buildOrderById = {}
-
-for tname,t in pairs(buildOrder) do
-	local array = {}
-	for i,name in ipairs(t) do
-		array[i] = UnitDefNameToID(name)
+local function NameArrayToIdArray(array)
+	local newArray = {}
+	for i,name in ipairs(array) do
+		newArray[i] = NameToID(name)
 	end
-	buildOrderById[UnitDefNameToID(tname)] = array
+	return newArray
 end
 
-gadget.buildOrder = buildOrderById
+local function NameArrayToIdSet(array)
+	local newSet = {}
+	for i,name in ipairs(array) do
+		newSet[NameToID(name)] = true
+	end
+	return newSet
+end
+
+local unitBuildOrderById = {}
+for k,v in pairs(unitBuildOrder) do
+	unitBuildOrderById[NameToID(k)] = NameArrayToIdArray(v)
+end
+
+gadget.unitBuildOrder = unitBuildOrderById
+gadget.baseBuildOrder = NameArrayToIdArray(baseBuildOrder)
+gadget.baseBuilders = NameArrayToIdSet(baseBuilders)
