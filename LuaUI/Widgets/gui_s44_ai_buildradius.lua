@@ -128,7 +128,7 @@ local strSub = string.sub
 local MAP_SIZE_X = Game.mapSizeX
 local MAP_SIZE_Z = Game.mapSizeZ
 
-local DEFAULT_SUPPLY_RANGE = 250
+local DEFAULT_BUILD_RANGE = 250
 
 ------------------------------------------------
 --util
@@ -617,7 +617,7 @@ function widget:Initialize()
 	for unitDefID=1,#UnitDefs do
 		local unitDef = UnitDefs[unitDefID]
 		if (unitDef.humanName ~= "Flag" and unitDef.speed == 0) then
-			local radius = DEFAULT_SUPPLY_RANGE
+			local radius = unitDef.customParams.buildrange or DEFAULT_BUILD_RANGE
 			local numSegments = ceil(radius / segmentLength)
 			local segmentAngle = 2 * PI / numSegments
 			local oddX, oddZ

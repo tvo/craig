@@ -22,6 +22,11 @@ function buildsiteFinder.FindBuildsite(builderID, unitDefID)
 	Returns x, y, z, facing if it finds a suitable buildsite for unitDefID.
 	builderID is currently used only to determine optimal build facing.
 	Returns nil if it can not find a suitable buildsite.
+
+Mod interface:
+
+unitDef.customParams.buildrange defines the radius of the circle around this
+building on which the AI will try to build. (default: DEFAULT_BUILD_RANGE)
 --]]
 
 function CreateBuildsiteFinder(myTeamID)
@@ -35,7 +40,7 @@ local widget = {}
 ------------------------------------------------
 local segmentLength = 5
 
-local DEFAULT_SUPPLY_RANGE = 250
+local DEFAULT_BUILD_RANGE = 250
 
 ------------------------------------------------
 --vars
@@ -262,7 +267,7 @@ local function Initialize()
 	for unitDefID=1,#UnitDefs do
 		local unitDef = UnitDefs[unitDefID]
 		if (unitDef.humanName ~= "Flag" and unitDef.speed == 0) then
-			local radius = DEFAULT_SUPPLY_RANGE
+			local radius = unitDef.customParams.buildrange or DEFAULT_BUILD_RANGE
 			local numSegments = ceil(radius / segmentLength)
 			local segmentAngle = 2 * PI / numSegments
 			local oddX, oddZ
@@ -307,25 +312,43 @@ end
 -- This is main public method; it finds good buildsites.
 -- returns x,y,z,facing, or nil if it can not find any build position
 function widget.FindBuildsite(builderID, unitDefID)
+	-- build list of points, similar to points shown by S44 supplyradius widget,
+	-- but with different radii (currently fixed for all buildings)
 	local vertices = DrawMain()
 	local count = vertices.vi
+
 	-- assume builder position is representative for base position
-	local facing = FindFacing(GetUnitPosition(builderID))
-	-- repeatedly try a random vertex until either we found one we can build on,
-	-- or we tried as many times as there are vertices
-	local watchdog = 0
-	repeat
-		-- get random vertex from the list
-		local i = math.random(0, count-1)
-		local v = vertices[i]
-		-- don't call TestBuildOrder multiple times for the same vertex
-		vertices[i] = nil
-		if v and TestBuildOrder(unitDefID, v[1],v[2],v[3], facing) > 0 then
-			return v[1],v[2],v[3],facing
+	local x,y,z = GetUnitPosition(builderID)
+	local facing = FindFacing(x,y,z)
+
+	if count > 1.5 then
+		-- repeatedly try a random vertex until either we found one we can build on,
+		-- or we tried as many times as there are vertices
+		local watchdog = 0
+		repeat
+			-- get random vertex from the list
+			local i = math.random(0, count-1)
+			local v = vertices[i]
+			-- don't call TestBuildOrder multiple times for the same vertex
+			vertices[i] = nil
+			if v and TestBuildOrder(unitDefID, v[1],v[2],v[3], facing) > 0 then
+				return v[1],v[2],v[3],facing
+			end
+			watchdog = watchdog + 1
+		until watchdog >= count
+		-- TODO: as last resort, do an exhaustive search over all vertices?
+	end
+
+	-- fallback: try to pick some random build site near the builder
+	for _=1,10 do
+		local tx = x + math.random(-DEFAULT_BUILD_RANGE, DEFAULT_BUILD_RANGE)
+		local tz = z + math.random(-DEFAULT_BUILD_RANGE, DEFAULT_BUILD_RANGE)
+		if TestBuildOrder(unitDefID, tx,y,tz, facing) > 0 then
+			return tx,y,tz,facing
 		end
-		watchdog = watchdog + 1
-	until watchdog >= count
-	-- TODO: as last resort, do an exhaustive search over all vertices?
+	end
+
+	-- we did our best, but to no avail... maybe we get lucky next time
 	return nil
 end
 
