@@ -10,14 +10,27 @@ local unitBuildOrder = {
 		"gbr_platoon_hq",
 		"gbr_platoon_hq",
 	},
+	gbrbarracks = {
+		"gbrengineer",
+		"gbr_platoon_rifle",
+		"gbr_platoon_assault",
+		"gbr_platoon_mortar",
+	},
+	gbrvehicleyard = {
+		"gbrmatadorengvehicle",
+		"gbrmatadorengvehicle"
+	},
 }
 
 local baseBuildOrder = {
 	"gbrbarracks",
-	"gbrbarracks",
 	"gbrstorage",
 	"gbrbarracks",
-	--TODO: vehicle yard, towed gun yard, tank yard
+	"gbrvehicleyard",
+	"gbrstorage",
+	"gbrstorage",
+	"gbrgunyard",
+	"gbrtankyard",
 }
 
 local baseBuilders = {
