@@ -3,6 +3,7 @@
 -- unit names must be lowercase!
 
 gadget.unitBuildOrder = {
+	-- Great Britain
 	gbrhq = {
 		"gbrhqengineer",
 		"gbrhqengineer",
@@ -20,9 +21,19 @@ gadget.unitBuildOrder = {
 		"gbrmatadorengvehicle",
 		"gbrmatadorengvehicle"
 	},
+	-- Russia
+	ruscommander = {
+		"ruscommissar",
+		"ruscommissar",
+		"ruscommissar",
+		"ruscommissar",
+		"ruscommissar",
+	},
 }
 
 gadget.baseBuildOrder = {
+-- TODO: need a way to specify BO for other sides
+--	"rusbarracks",
 	"gbrbarracks",
 	"gbrstorage",
 	"gbrbarracks",
@@ -40,8 +51,10 @@ gadget.baseBuilders = {
 	"gerengineer",
 	"gerhqengineer",
 	--TODO: eng vehicle
+	--"ruscommander",
+	"ruscommissar",
 	"rusengineer",
-	--TODO: commisar, eng vehicle
+	--TODO: eng vehicle
 	"ushqengineer",
 	"usengineer",
 	"usgmcengvehicle",
