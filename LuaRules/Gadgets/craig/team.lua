@@ -74,7 +74,7 @@ local function BuildBase()
 	if currentBuild then
 		local unitID = Spring.GetUnitIsBuilding(currentBuilder)
 		local vx,vy,vz = Spring.GetUnitVelocity(currentBuilder)
-		if (not unitID) and (vx*vx + vz*vz < 0.0001) then
+		if (unitID == nil) and ((vx == nil) or (vx*vx + vz*vz < 0.0001)) then
 			Log(UnitDefs[currentBuild].humanName .. " was finished/aborted, but neither UnitFinished nor UnitDestroyed was called")
 			BuildBaseInterrupted(false)
 		--[[else
