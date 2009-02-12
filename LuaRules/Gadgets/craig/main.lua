@@ -41,8 +41,11 @@ end
 
 --------------------------------------------------------------------------------
 
--- includes
-include("LuaRules/Configs/craig/unit_abstraction.lua")
+-- include configuration
+include("LuaRules/Configs/craig/buildorder.lua")
+
+-- include code
+include("LuaRules/Gadgets/craig/buildorder.lua")
 include("LuaRules/Gadgets/craig/buildsite.lua")
 include("LuaRules/Gadgets/craig/team.lua")
 
