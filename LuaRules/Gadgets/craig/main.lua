@@ -1,14 +1,14 @@
 -- Author: Tobi Vollebregt
 -- Slightly based on the Kernel Panic AI by KDR_11k (David Becker) and zwzsg.
 
--- In-game, type /luarules s44ai in the console to toggle the ai debug messages
+-- In-game, type /luarules craig in the console to toggle the ai debug messages
 
 function gadget:GetInfo()
 	return {
-		name = "Spring: 1944 AI",
-		desc = "An AI for Spring: 1944",
+		name = "C.R.A.I.G.: 1944",
+		desc = "Configurable Reusable Artificial Intelligence Gadget for Spring: 1944",
 		author = "Tobi Vollebregt",
-		date = "2009-02-08",
+		date = "2009-02-12",
 		license = "GNU General Public License",
   		layer = 82,
 		enabled = true
@@ -42,46 +42,46 @@ end
 --------------------------------------------------------------------------------
 
 -- includes
-include("LuaRules/Configs/S44_AI/unit_abstraction.lua")
-include("LuaRules/Gadgets/S44_AI/buildsite.lua")
-include("LuaRules/Gadgets/S44_AI/team.lua")
+include("LuaRules/Configs/craig/unit_abstraction.lua")
+include("LuaRules/Gadgets/craig/buildsite.lua")
+include("LuaRules/Gadgets/craig/team.lua")
 
 -- constants
 local GAIA_TEAM_ID = Spring.GetGaiaTeamID()
 
 -- globals
-local S44_AI_Debug_Mode = 1 -- Must be 0 or 1
+local CRAIG_Debug_Mode = 1 -- Must be 0 or 1
 
 local team = {}
 
 local function ChangeAIDebugVerbosity(cmd,line,words,player)
 	local lvl = tonumber(words[1])
 	if lvl then
-		S44_AI_Debug_Mode = lvl
-		Spring.Echo("S44 LUA AI debug verbosity set to " .. S44_AI_Debug_Mode)
+		CRAIG_Debug_Mode = lvl
+		Spring.Echo("C.R.A.I.G.: debug verbosity set to " .. CRAIG_Debug_Mode)
 	else
-		if S44_AI_Debug_Mode > 0 then
-			S44_AI_Debug_Mode = 0
+		if CRAIG_Debug_Mode > 0 then
+			CRAIG_Debug_Mode = 0
 		else
-			S44_AI_Debug_Mode = 1
+			CRAIG_Debug_Mode = 1
 		end
-		Spring.Echo("S44 LUA AI debug verbosity toggled to " .. S44_AI_Debug_Mode)
+		Spring.Echo("C.R.A.I.G.: debug verbosity toggled to " .. CRAIG_Debug_Mode)
 	end
 	return true
 end
 
 local function SetupCmdChangeAIDebugVerbosity()
 	local cmd,func,help
-	cmd  = "s44ai"
+	cmd  = "craig"
 	func = ChangeAIDebugVerbosity
-	help = " [0|1]: make the S44 LUA AI shut up or fill your infolog"
+	help = " [0|1]: make C.R.A.I.G. shut up or fill your infolog"
 	gadgetHandler:AddChatAction(cmd,func,help)
 	Script.AddActionFallback(cmd .. ' ',help)
 end
 
 function Log(message)
-	if S44_AI_Debug_Mode > 0 then
-		Spring.Echo("S44AI: " .. message)
+	if CRAIG_Debug_Mode > 0 then
+		Spring.Echo("C.R.A.I.G.: " .. message)
 	end
 end
 

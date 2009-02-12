@@ -2,8 +2,8 @@
 
 local bots = {
 	{
-		name = "Spring: 1944 AI",
-		desc = "",
+		name = "C.R.A.I.G.: 1944",
+		desc = "Configurable Reusable Artificial Intelligence Gadget for Spring: 1944",
 	},
 }
 
