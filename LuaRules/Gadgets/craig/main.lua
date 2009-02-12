@@ -49,9 +49,6 @@ include("LuaRules/Gadgets/craig/buildorder.lua")
 include("LuaRules/Gadgets/craig/buildsite.lua")
 include("LuaRules/Gadgets/craig/team.lua")
 
--- constants
-local GAIA_TEAM_ID = Spring.GetGaiaTeamID()
-
 -- globals
 local CRAIG_Debug_Mode = 1 -- Must be 0 or 1
 
@@ -110,6 +107,7 @@ function gadget:GamePreload()
 	--Log("gadget:GamePreload")
 	-- Initialise AI for all team that are set to use it
 	for _,t in ipairs(Spring.GetTeamList()) do
+		--Log("considering team " .. t)
 		if Spring.GetTeamLuaAI(t) == gadget:GetInfo().name then
 			local _,_,_,_,side,at = Spring.GetTeamInfo(t)
 			team[t] = CreateTeam(t, at, side)
@@ -120,6 +118,9 @@ end
 function gadget:GameStart()
 	-- This is executed AFTER headquarters / commander is spawned
 	--Log("gadget:GameStart")
+	for _,t in pairs(team) do
+		t.GameStart()
+	end
 end
 
 function gadget:GameFrame(f)
@@ -129,6 +130,24 @@ function gadget:GameFrame(f)
 			t.GameFrame(f)
 		end
 	end
+end
+
+--------------------------------------------------------------------------------
+--
+--  Game call-ins
+--
+
+function gadget:TeamDied(teamID)
+	if team[teamID] then
+		team[teamID] = nil
+		Log("removed team " .. teamID)
+	end
+
+	--TODO: need to call this for other/enemy teams too, so a team
+	-- can adjust it's fight orders to the remaining living teams.
+	--for _,t in pairs(team) do
+	--	t.TeamDied(teamID)
+	--end
 end
 
 --------------------------------------------------------------------------------

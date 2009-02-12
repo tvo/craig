@@ -18,13 +18,23 @@ function team.UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 function CreateTeam(myTeamID, myAllyTeamID, mySide)
 
 local team = {}
-local buildsiteFinder = CreateBuildsiteFinder(myTeamID)
 
+-- constants
+local GAIA_TEAM_ID = Spring.GetGaiaTeamID()
+
+-- Enemy start positions (assumes this are base positions)
+local enemyBases = {}
+local enemyBaseCount = 0
+local enemyBaseLastAttacked = 0
+
+-- Unit building (one buildOrder per factory)
 local unitBuildOrder = gadget.unitBuildOrder
+
+-- Base building (one global buildOrder)
+local buildsiteFinder = CreateBuildsiteFinder(myTeamID)
 local baseBuildOrder = gadget.baseBuildOrder
 local baseBuildIndex = 0
 local baseBuilders = gadget.baseBuilders
-
 local baseBuildOptions = {} -- map of unitDefIDs (buildOption) to unitDefIDs (builders)
 local baseBuildOptionsDirty = false
 local currentBuild          -- one unitDefID
@@ -59,7 +69,7 @@ local function BuildBaseInterrupted(violent)
 	currentBuilder = nil
 end
 
--- modifies sim, only call this in GameFrame (or use DelayedCall)
+-- modifies sim, only call this in GameFrame! (or use DelayedCall)
 local function BuildBase()
 	if currentBuild then
 		local unitID = Spring.GetUnitIsBuilding(currentBuilder)
@@ -117,8 +127,34 @@ local function BuildBase()
 	currentBuilder = builderID
 end
 
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--
+--  The call-in routines
+--
+
+function team.GameStart()
+	Log("GameStart")
+	-- Can not run this in the initialization code at the end of this file,
+	-- because at that time Spring.GetTeamStartPosition seems to always return 0,0,0.
+	for _,t in ipairs(Spring.GetTeamList()) do
+		--Log("considering team " .. t)
+		if (t ~= GAIA_TEAM_ID) and (not Spring.AreTeamsAllied(myTeamID, t)) then
+			local x,y,z = Spring.GetTeamStartPosition(t)
+			if x and x ~= 0 then
+				enemyBaseCount = enemyBaseCount + 1
+				enemyBases[enemyBaseCount] = {x,y,z}
+				Log("Enemy base spotted at coordinates: " .. x .. ", " .. z)
+			else
+				Log("Oops, Spring.GetTeamStartPosition failed")
+			end
+		end
+	end
+	Log("Preparing to attack " .. enemyBaseCount .. " enemies")
+end
+
 function team.GameFrame(f)
-	--Log("GameFrame")
+	Log("GameFrame")
 
 	-- update baseBuildOptions
 	if baseBuildOptionsDirty then
@@ -169,17 +205,35 @@ function team.UnitFinished(unitID, unitDefID, unitTeam)
 	-- queue unitBuildOrders if we have any for this unitDefID
 	if unitBuildOrder[unitDefID] then
 		DelayedCall(function()
+			local factory = (UnitDefs[unitDefID].TEDClass == "PLANT") -- factory or builder?
 			for _,bo in ipairs(unitBuildOrder[unitDefID]) do
-				-- is it a factory or a builder?
-				if UnitDefs[unitDefID].TEDClass ~= "PLANT" then
-					Log("Warning: Queueing in place: " .. UnitDefs[bo].humanName)
-					-- It's not recommended to put buildings in unitBuildOrder,
-					-- but keep it supported anyway.. might be useful sometime.
-					local x,y,z,facing = buildsiteFinder.FindBuildsite(unitID, bo)
-					Spring.GiveOrderToUnit(unitID, -bo, {x,y,z,facing}, {"shift"})
-				else
+				if factory then
 					Log("Queueing: " .. UnitDefs[bo].humanName)
 					Spring.GiveOrderToUnit(unitID, -bo, {}, {})
+				else
+					Log("Queueing in place: " .. UnitDefs[bo].humanName)
+					if UnitDefs[bo].speed == 0 then
+						Log("Warning: it's not recommended to queue buildings through unitBuildOrder!")
+					end
+					local x,y,z,facing = buildsiteFinder.FindBuildsite(unitID, bo)
+					Spring.GiveOrderToUnit(unitID, -bo, {x,y,z,facing}, {"shift"})
+				end
+			end
+			if factory then
+				-- If there are no enemies, don't bother lagging Spring to death:
+				-- just go through the build queue exactly once, instead of repeating it.
+				if enemyBaseCount > 0 then
+					Spring.GiveOrderToUnit(unitID, CMD.REPEAT, {1}, {})
+					-- Each next factory gives fight command to next enemy.
+					-- Didn't use math.random() because it's really hard to establish
+					-- a 100% correct distribution when you don't know whether the
+					-- upper bound of the RNG is inclusive or exclusive.
+					enemyBaseLastAttacked = enemyBaseLastAttacked + 1
+					if enemyBaseLastAttacked > enemyBaseCount then
+						enemyBaseLastAttacked = 1
+					end
+					-- enemyBases[] is in the right format to pass into GiveOrderToUnit...
+					Spring.GiveOrderToUnit(unitID, CMD.FIGHT, enemyBases[enemyBaseLastAttacked], {})
 				end
 			end
 		end)
