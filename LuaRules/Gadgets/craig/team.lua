@@ -119,6 +119,11 @@ end
 function team.UnitFinished(unitID, unitDefID, unitTeam)
 	Log("UnitFinished "..unitID.."/"..unitDefID.."/"..unitTeam)
 
+	-- idea from BrainDamage: instead of cheating huge amounts of resources,
+	-- just cheat in the cost of the units we build.
+	Spring.AddTeamResource(myTeamID, "metal", UnitDefs[unitDefID].metalCost)
+	Spring.AddTeamResource(myTeamID, "energy", UnitDefs[unitDefID].energyCost)
+
 	-- queue unitBuildOrders if we have any for this unitDefID
 	if unitBuildOrder[unitDefID] then
 		DelayedCall(function()
