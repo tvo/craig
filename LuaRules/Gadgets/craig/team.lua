@@ -75,7 +75,12 @@ local function BuildBase()
 	if currentBuild then
 		local unitID = Spring.GetUnitIsBuilding(currentBuilder)
 		local vx,vy,vz = Spring.GetUnitVelocity(currentBuilder)
-		if (unitID == nil) and ((vx == nil) or (vx*vx + vz*vz < 0.0001)) then
+		local _,_,inBuild = Spring.GetUnitIsStunned(currentBuilder)
+		-- consider build aborted when:
+		-- * the builder isn't building anymore (unitID == nil)
+		-- * the builder doesn't exist anymore (vx == nil)
+		-- * the builder is not moving, except when he is being build!
+		if (unitID == nil) and ((vx == nil) or ((vx*vx + vz*vz < 0.0001) and (not inBuild))) then
 			Log(UnitDefs[currentBuild].humanName .. " was finished/aborted, but neither UnitFinished nor UnitDestroyed was called")
 			BuildBaseInterrupted(false)
 		--[[else
