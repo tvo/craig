@@ -33,11 +33,19 @@ end
 
 do
 	local unitBuildOrderById = {}
-	for k,v in pairs(unitBuildOrder) do
+	for k,v in pairs(gadget.unitBuildOrder) do
 		unitBuildOrderById[NameToID(k)] = NameArrayToIdArray(v)
 	end
 	gadget.unitBuildOrder = unitBuildOrderById
 end
 
-gadget.baseBuildOrder = NameArrayToIdArray(baseBuildOrder)
-gadget.baseBuilders = NameArrayToIdSet(baseBuilders)
+do
+	local baseBuildOrderById = {}
+	for k,v in pairs(gadget.baseBuildOrder) do
+		-- don't translate key here, it's the side
+		baseBuildOrderById[k] = NameArrayToIdArray(v)
+	end
+	gadget.baseBuildOrder = baseBuildOrderById
+end
+
+gadget.baseBuilders = NameArrayToIdSet(gadget.baseBuilders)

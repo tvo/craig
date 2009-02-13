@@ -32,7 +32,7 @@ local unitBuildOrder = gadget.unitBuildOrder
 
 -- Base building (one global buildOrder)
 local buildsiteFinder = CreateBuildsiteFinder(myTeamID)
-local baseBuildOrder = gadget.baseBuildOrder
+local baseBuildOrder = gadget.baseBuildOrder[mySide]
 local baseBuildIndex = 0
 local baseBuilders = gadget.baseBuilders
 local baseBuildOptions = {} -- map of unitDefIDs (buildOption) to unitDefIDs (builders)
@@ -292,6 +292,11 @@ end
 --
 --  Initialization
 --
+
+if not baseBuildOrder then
+	error("C.R.A.I.G. is not configured properly to play as " .. mySide)
+end
+
 Log("assigned to " .. gadget:GetInfo().name .. " (allyteam: " .. myAllyTeamID .. ", side: " .. mySide .. ")")
 
 return team
