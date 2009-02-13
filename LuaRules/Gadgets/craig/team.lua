@@ -233,8 +233,14 @@ function team.UnitFinished(unitID, unitDefID, unitTeam)
 					if enemyBaseLastAttacked > enemyBaseCount then
 						enemyBaseLastAttacked = 1
 					end
-					-- enemyBases[] is in the right format to pass into GiveOrderToUnit...
-					Spring.GiveOrderToUnit(unitID, CMD.FIGHT, enemyBases[enemyBaseLastAttacked], {})
+					-- queue up a bunch of fight orders towards all enemies
+					local idx = enemyBaseLastAttacked
+					for i=1,enemyBaseCount do
+						-- enemyBases[] is in the right format to pass into GiveOrderToUnit...
+						Spring.GiveOrderToUnit(unitID, CMD.FIGHT, enemyBases[idx], {"shift"})
+						idx = idx + 1
+						if idx > enemyBaseCount then idx = 1 end
+					end
 				end
 			end
 		end)
