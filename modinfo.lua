@@ -1,4 +1,8 @@
 -- Author: Tobi Vollebregt
+-- License: GNU General Public License v2
+
+-- NOTE: this modinfo.lua is only used for developing,
+-- the released modinfo.lua is embedded in make_release.sh
 
 local modinfo = {
 	name = "Spring: 1944 SVN + AI",

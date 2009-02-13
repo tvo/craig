@@ -1,4 +1,5 @@
 -- Author: Tobi Vollebregt
+-- License: GNU General Public License v2
 
 local bots = {
 	{
