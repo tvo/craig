@@ -1,4 +1,6 @@
 -- Author: Tobi Vollebregt
+-- License: GNU General Public License v2
+
 -- Slightly based on the Kernel Panic AI by KDR_11k (David Becker) and zwzsg.
 
 -- In-game, type /luarules craig in the console to toggle the ai debug messages

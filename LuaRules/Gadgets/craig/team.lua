@@ -1,4 +1,5 @@
 -- Author: Tobi Vollebregt
+-- License: GNU General Public License v2
 
 --[[
 This class is implemented as a single function returning a table with public

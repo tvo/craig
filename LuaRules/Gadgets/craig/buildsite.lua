@@ -1,6 +1,6 @@
 -- Author: Tobi Vollebregt (11 feb 2009)
 -- Author: Evil4Zerggin (gui_s44_supplyradius.lua version 1.9, 5 jan 2009, SVN rev 930)
--- License: "GNU LGPL, v2.1 or later"
+-- License: GNU LGPL, v2.1 or later
 
 --[[
 This class is implemented as a single function returning a table with public
