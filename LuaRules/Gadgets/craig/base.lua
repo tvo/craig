@@ -32,50 +32,45 @@ local currentBuilder        -- one unitID
 local bUseClosestBuildSite = true
 
 -- does not modify sim; is called from outside GameFrame
-local function BuildBaseInterrupted(violent)
-	if violent then
-		-- enforce randomized next buildsite, instead of
-		-- hopelessly trying again and again on same place
-		bUseClosestBuildSite = false
-		baseBuildIndex = baseBuildIndex - 1
-		Log("Reset baseBuildIndex to " .. baseBuildIndex)
-	end
+local function BuildBaseFinished()
 	currentBuild = nil
 	currentBuilder = nil
+end
+
+-- does not modify sim; is called from outside GameFrame
+local function BuildBaseInterrupted()
+	-- enforce randomized next buildsite, instead of
+	-- hopelessly trying again and again on same place
+	bUseClosestBuildSite = false
+	baseBuildIndex = baseBuildIndex - 1
+	return BuildBaseFinished()
 end
 
 -- modifies sim, only call this in GameFrame! (or use DelayedCall)
 local function BuildBase()
 	if currentBuild then
-		local unitID = Spring.GetUnitIsBuilding(currentBuilder)
-		local vx,vy,vz = Spring.GetUnitVelocity(currentBuilder)
-		local _,_,inBuild = Spring.GetUnitIsStunned(currentBuilder)
-		-- consider build aborted when:
-		-- * the builder isn't building anymore (unitID == nil)
-		-- * the builder doesn't exist anymore (vx == nil)
-		-- * the builder is not moving, except when he is being build!
-		if (unitID == nil) and ((vx == nil) or ((vx*vx + vz*vz < 0.0001) and (not inBuild))) then
+		if #Spring.GetUnitCommands(currentBuilder, 1) == 0 then
 			Log(UnitDefs[currentBuild].humanName .. " was finished/aborted, but neither UnitFinished nor UnitDestroyed was called")
-			BuildBaseInterrupted(true) -- not THAT violent but need to reset baseBuildIndex either way..
-		--[[else
-			local _,_,inBuild = Spring.GetUnitIsStunned(unitID)
-			if not inBuild then
-				Log(UnitDefs[currentBuild].humanName .. " was finished, but neither UnitFinished nor UnitDestroyed was called (2)")
-				BuildBaseInterrupted(false)
-			end]]--
+			BuildBaseInterrupted()
 		end
 	end
 
 	-- nothing to do if something is still being build
 	if currentBuild then return end
 
-	local unitDefID = baseBuildOrder[baseBuildIndex + 1]
-	-- restart queue when finished
-	if not unitDefID then
-		baseBuildIndex = 0
-		unitDefID = baseBuildOrder[1]
-		Log("Restarted baseBuildOrder, next item: " .. UnitDefs[unitDefID].humanName)
-	end
+	local unitDefID
+	local newIndex = baseBuildIndex
+	repeat
+		newIndex = newIndex + 1
+		unitDefID = baseBuildOrder[newIndex]
+		-- restart queue when finished
+		if not unitDefID then
+			newIndex = 1
+			unitDefID = baseBuildOrder[1]
+			Log("Restarted baseBuildOrder, next item: " .. UnitDefs[unitDefID].humanName)
+		end
+	until (newIndex == baseBuildIndex) or
+		((Spring.GetTeamUnitDefCount(myTeamID, unitDefID) or 0) < UnitDefs[unitDefID].maxThisUnit)
 
 	local builderDefID = baseBuildOptions[unitDefID]
 	-- nothing to do if we have no builders available yet who can build this
@@ -102,7 +97,7 @@ local function BuildBase()
 	end
 
 	-- finally, register the build as started
-	baseBuildIndex = baseBuildIndex + 1
+	baseBuildIndex = newIndex
 	currentBuild = unitDefID
 	currentBuilder = builderID
 
@@ -164,7 +159,7 @@ function base.UnitFinished(unitID, unitDefID, unitTeam)
 
 	if unitDefID == currentBuild then
 		Log("CurrentBuild finished")
-		BuildBaseInterrupted(false)
+		BuildBaseFinished()
 	end
 end
 
@@ -180,11 +175,11 @@ function base.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDef
 	-- update base building
 	if unitDefID == currentBuild then
 		Log("CurrentBuild destroyed")
-		BuildBaseInterrupted(true)
+		BuildBaseInterrupted()
 	end
 	if unitID == currentBuilder then
 		Log("CurrentBuilder destroyed")
-		BuildBaseInterrupted(true)
+		BuildBaseInterrupted()
 	end
 end
 
