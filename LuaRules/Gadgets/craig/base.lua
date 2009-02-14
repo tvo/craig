@@ -49,7 +49,7 @@ end
 -- modifies sim, only call this in GameFrame! (or use DelayedCall)
 local function BuildBase()
 	if currentBuild then
-		if #Spring.GetUnitCommands(currentBuilder, 1) == 0 then
+		if #(Spring.GetUnitCommands(currentBuilder, 1) or {}) == 0 then
 			Log(UnitDefs[currentBuild].humanName .. " was finished/aborted, but neither UnitFinished nor UnitDestroyed was called")
 			BuildBaseInterrupted()
 		end
