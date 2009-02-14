@@ -20,6 +20,10 @@ function CreateTeam(myTeamID, myAllyTeamID, mySide)
 
 local team = {}
 
+local Log = function (message)
+	Log("Team[" .. myTeamID .. "] " .. message)
+end
+
 -- constants
 local GAIA_TEAM_ID = Spring.GetGaiaTeamID()
 
@@ -35,10 +39,6 @@ local base = CreateBaseBuildMgr(myTeamID, myAllyTeamID, mySide, Log)
 local unitBuildOrder = gadget.unitBuildOrder
 
 local delayedCallQue = { first = 1, last = 0 }
-
-local Log = function (message)
-	Log("Team[" .. myTeamID .. "] " .. message)
-end
 
 local function DelayedCall(fun)
 	delayedCallQue.last = delayedCallQue.last + 1
