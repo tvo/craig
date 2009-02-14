@@ -29,10 +29,14 @@ local baseBuildOptions = {} -- map of unitDefIDs (buildOption) to unitDefIDs (bu
 local baseBuildOptionsDirty = false
 local currentBuild          -- one unitDefID
 local currentBuilder        -- one unitID
+local bUseClosestBuildSite = true
 
 -- does not modify sim; is called from outside GameFrame
 local function BuildBaseInterrupted(violent)
 	if violent then
+		-- enforce randomized next buildsite, instead of
+		-- hopelessly trying again and again on same place
+		bUseClosestBuildSite = false
 		baseBuildIndex = baseBuildIndex - 1
 		Log("Reset baseBuildIndex to " .. baseBuildIndex)
 	end
@@ -84,7 +88,7 @@ local function BuildBase()
 	if not builderID then Log("internal error: Spring.GetTeamUnitsByDefs returned empty array") return end
 
 	-- give the order to the builder, iff we can find a buildsite
-	local x,y,z,facing = buildsiteFinder.FindBuildsite(builderID, unitDefID)
+	local x,y,z,facing = buildsiteFinder.FindBuildsite(builderID, unitDefID, bUseClosestBuildSite)
 	if not x then Log("Could not find buildsite for " .. UnitDefs[unitDefID].humanName) return end
 
 	Log("Queueing in place: " .. UnitDefs[unitDefID].humanName)
@@ -101,6 +105,9 @@ local function BuildBase()
 	baseBuildIndex = baseBuildIndex + 1
 	currentBuild = unitDefID
 	currentBuilder = builderID
+
+	-- assume next build can safely be close to the builder again
+	bUseClosestBuildSite = true
 end
 
 --------------------------------------------------------------------------------
