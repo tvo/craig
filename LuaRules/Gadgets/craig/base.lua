@@ -23,7 +23,8 @@ local base = {}
 local buildsiteFinder = CreateBuildsiteFinder(myTeamID)
 local baseBuildOrder = gadget.baseBuildOrder[mySide]
 local baseBuildIndex = 0
-local baseBuilders = gadget.baseBuilders
+local baseBuilders = gadget.baseBuilders -- set of all unitDefIDs which are base builders
+local myBaseBuilders = {}   -- set of all unitIDs which are the base builders of the team
 local baseBuildOptions = {} -- map of unitDefIDs (buildOption) to unitDefIDs (builders)
 local baseBuildOptionsDirty = false
 local currentBuild          -- one unitDefID
@@ -89,12 +90,12 @@ local function BuildBase()
 	Log("Queueing in place: " .. UnitDefs[unitDefID].humanName)
 	Spring.GiveOrderToUnit(builderID, -unitDefID, {x,y,z,facing}, {})
 
-	-- give guard order to the other builders with the same def
-	for i=2,#builders do
-		Spring.GiveOrderToUnit(builders[i], CMD.GUARD, {builderID}, {})
+	-- give guard order to all our other builders
+	for u,_ in pairs(myBaseBuilders) do
+		if u ~= builderID then
+			Spring.GiveOrderToUnit(u, CMD.GUARD, {builderID}, {})
+		end
 	end
-
-	-- TODO: give guard order to all builders with another def
 
 	-- finally, register the build as started
 	baseBuildIndex = baseBuildIndex + 1
@@ -142,6 +143,9 @@ base.UnitCreated = buildsiteFinder.UnitCreated
 function base.UnitFinished(unitID, unitDefID, unitTeam)
 	-- update base building
 	if baseBuilders[unitDefID] then
+		-- keep track of all builders we've walking around
+		myBaseBuilders[unitID] = true
+		-- update list of buildings we can build
 		for _,bo in ipairs(UnitDefs[unitDefID].buildOptions) do
 			if not baseBuildOptions[bo] then
 				Log("Base can now build " .. UnitDefs[bo].humanName)
@@ -162,6 +166,7 @@ function base.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDef
 
 	-- update baseBuildOptions
 	if baseBuilders[unitDefID] then
+		myBaseBuilders[unitID] = nil
 		baseBuildOptionsDirty = true
 	end
 
