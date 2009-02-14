@@ -322,6 +322,17 @@ function widget.FindBuildsite(builderID, unitDefID)
 	local facing = FindFacing(x,y,z)
 
 	if count > 1.5 then
+		for _,v in ipairs(vertices) do
+			local dx,dz = (x-v[1]), (z-v[3])
+			v.sqdist = dx*dx + dz*dz
+		end
+		table.sort(vertices, function (a, b) return a.sqdist < b.sqdist end)
+		for _,v in ipairs(vertices) do
+			if v and TestBuildOrder(unitDefID, v[1],v[2],v[3], facing) > 0 then
+				return v[1],v[2],v[3],facing
+			end
+		end
+		--[[
 		-- repeatedly try a random vertex until either we found one we can build on,
 		-- or we tried as many times as there are vertices
 		local watchdog = 0
@@ -337,6 +348,7 @@ function widget.FindBuildsite(builderID, unitDefID)
 			watchdog = watchdog + 1
 		until watchdog >= count
 		-- TODO: as last resort, do an exhaustive search over all vertices?
+		--]]
 	end
 
 	-- fallback: try to pick some random build site near the builder
