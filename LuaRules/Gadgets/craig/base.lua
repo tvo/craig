@@ -52,7 +52,7 @@ local function BuildBase()
 		-- * the builder is not moving, except when he is being build!
 		if (unitID == nil) and ((vx == nil) or ((vx*vx + vz*vz < 0.0001) and (not inBuild))) then
 			Log(UnitDefs[currentBuild].humanName .. " was finished/aborted, but neither UnitFinished nor UnitDestroyed was called")
-			BuildBaseInterrupted(false)
+			BuildBaseInterrupted(true) -- not THAT violent but need to reset baseBuildIndex either way..
 		--[[else
 			local _,_,inBuild = Spring.GetUnitIsStunned(unitID)
 			if not inBuild then
