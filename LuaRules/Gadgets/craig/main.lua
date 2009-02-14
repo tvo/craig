@@ -52,7 +52,7 @@ include("LuaRules/Gadgets/craig/buildsite.lua")
 include("LuaRules/Gadgets/craig/team.lua")
 
 -- globals
-local CRAIG_Debug_Mode = 1 -- Must be 0 or 1
+local CRAIG_Debug_Mode = 0 -- Must be 0 or 1
 
 local team = {}
 
