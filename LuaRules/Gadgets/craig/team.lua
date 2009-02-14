@@ -28,6 +28,9 @@ local enemyBases = {}
 local enemyBaseCount = 0
 local enemyBaseLastAttacked = 0
 
+-- Base building (one global buildOrder)
+local base = CreateBaseBuildMgr(myTeamID, myAllyTeamID, mySide, Log)
+
 -- Unit building (one buildOrder per factory)
 local unitBuildOrder = gadget.unitBuildOrder
 
@@ -50,7 +53,10 @@ local function PopDelayedCall()
 	return ret
 end
 
-local base = CreateBaseBuildMgr(myTeamID, myAllyTeamID, mySide, Log)
+local function Refill(resource)
+	local value,storage = Spring.GetTeamResources(myTeamID, resource)
+	Spring.AddTeamResource(myTeamID, resource, storage - value)
+end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -81,6 +87,9 @@ end
 function team.GameFrame(f)
 	Log("GameFrame")
 
+	Refill("metal")
+	Refill("energy")
+
 	while true do
 		local fun = PopDelayedCall()
 		if fun then fun() else break end
@@ -104,8 +113,8 @@ function team.UnitFinished(unitID, unitDefID, unitTeam)
 
 	-- idea from BrainDamage: instead of cheating huge amounts of resources,
 	-- just cheat in the cost of the units we build.
-	Spring.AddTeamResource(myTeamID, "metal", UnitDefs[unitDefID].metalCost)
-	Spring.AddTeamResource(myTeamID, "energy", UnitDefs[unitDefID].energyCost)
+	--Spring.AddTeamResource(myTeamID, "metal", UnitDefs[unitDefID].metalCost)
+	--Spring.AddTeamResource(myTeamID, "energy", UnitDefs[unitDefID].energyCost)
 
 	-- queue unitBuildOrders if we have any for this unitDefID
 	if unitBuildOrder[unitDefID] then
