@@ -79,7 +79,12 @@ local function BuildBase()
 	local builders = Spring.GetTeamUnitsByDefs(myTeamID, builderDefID)
 	if not builders then Log("internal error: Spring.GetTeamUnitsByDefs returned nil") return end
 
-	local builderID = builders[1]
+	-- get a builder that isn't being build
+	local builderID
+	for _,u in ipairs(builders) do
+		local _,_,inBuild = Spring.GetUnitIsStunned(u)
+		if not inBuild then builderID = u break end
+	end
 	if not builderID then Log("internal error: Spring.GetTeamUnitsByDefs returned empty array") return end
 
 	-- give the order to the builder, iff we can find a buildsite
