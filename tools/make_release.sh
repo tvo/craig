@@ -8,7 +8,7 @@
 
 mkdir .tmp
 cp -r * .tmp/
-rm -fv .tmp/mutator.zip .tmp/mutator.sdz
+rm -rf .tmp/mutator.zip .tmp/mutator.sdz .tmp/tools/
 
 # Generate modinfo.lua for Operation Konstantin (v0.92)
 cat > .tmp/modinfo.lua << EOD
