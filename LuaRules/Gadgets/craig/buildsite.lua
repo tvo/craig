@@ -38,7 +38,7 @@ local widget = {}
 ------------------------------------------------
 --config
 ------------------------------------------------
-local segmentLength = 5
+local segmentLength = 10
 
 local DEFAULT_BUILD_RANGE = 250
 

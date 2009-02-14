@@ -25,7 +25,7 @@ local previewColor = {1, 0, 0, 0.25}
 local showAlways = false
 local showRollover = true
 local showSelect = true
-local segmentLength = 5
+local segmentLength = 10
 
 function widget:GetConfigData(data)
 	return {
