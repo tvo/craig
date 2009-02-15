@@ -12,7 +12,8 @@ v1.1 -> v1.5
   - Base builders take closest buildsite, instead of random one.
   - Base builders still take random buildsite if previous build was interrupted.
   - Speed up building placement algorithm by bumping segmentLength up.
+* It doesn't stall on Command (metal) anymore.
 
 v1 -> v1.1
 ==========
-- Plays all sides now, credits to Journier for adding build orders.
+* Plays all sides now, credits to Journier for adding build orders.
