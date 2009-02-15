@@ -36,13 +36,15 @@ local baseBuilders = gadget.baseBuilders -- set of all unitDefIDs which are base
 local myBaseBuilders = {}   -- set of all unitIDs which are the base builders of the team
 local baseBuildOptions = {} -- map of unitDefIDs (buildOption) to unitDefIDs (builders)
 local baseBuildOptionsDirty = false
-local currentBuild          -- one unitDefID
+local currentBuildDefID     -- one unitDefID
+local currentBuildID        -- one unitID
 local currentBuilder        -- one unitID
 local bUseClosestBuildSite = true
 
 -- does not modify sim; is called from outside GameFrame
 local function BuildBaseFinished()
-	currentBuild = nil
+	currentBuildDefID = nil
+	currentBuildID = nil
 	currentBuilder = nil
 end
 
@@ -57,15 +59,15 @@ end
 
 -- modifies sim, only call this in GameFrame! (or use DelayedCall)
 local function BuildBase()
-	if currentBuild then
+	if currentBuildDefID then
 		if #(Spring.GetUnitCommands(currentBuilder, 1) or {}) == 0 then
-			Log(UnitDefs[currentBuild].humanName .. " was finished/aborted, but neither UnitFinished nor UnitDestroyed was called")
+			Log(UnitDefs[currentBuildDefID].humanName .. " was finished/aborted, but neither UnitFinished nor UnitDestroyed was called")
 			BuildBaseInterrupted()
 		end
 	end
 
 	-- nothing to do if something is still being build
-	if currentBuild then return end
+	if currentBuildDefID then return end
 
 	local unitDefID
 	local newIndex = baseBuildIndex
@@ -112,7 +114,7 @@ local function BuildBase()
 
 	-- finally, register the build as started
 	baseBuildIndex = newIndex
-	currentBuild = unitDefID
+	currentBuildDefID = unitDefID
 	currentBuilder = builderID
 
 	-- assume next build can safely be close to the builder again
@@ -152,8 +154,13 @@ end
 --  Unit call-ins
 --
 
--- Short circuit callin which would otherwise only forward the call..
-base.UnitCreated = buildsiteFinder.UnitCreated
+function base.UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	buildsiteFinder.UnitCreated(unitID, unitDefID, unitTeam)
+
+	if (not currentBuildID) and (unitDefID == currentBuildDefID) and (builderID == currentBuilder) then
+		currentBuildID = unitID
+	end
+end
 
 function base.UnitFinished(unitID, unitDefID, unitTeam)
 	-- update base building
@@ -169,7 +176,7 @@ function base.UnitFinished(unitID, unitDefID, unitTeam)
 		end
 	end
 
-	if unitDefID == currentBuild then
+	if (unitDefID == currentBuildDefID) and ((not currentBuildID) or (unitID == currentBuildID)) then
 		Log("CurrentBuild finished")
 		BuildBaseFinished()
 	end
@@ -185,7 +192,7 @@ function base.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDef
 	end
 
 	-- update base building
-	if unitDefID == currentBuild then
+	if (unitDefID == currentBuildDefID) and ((not currentBuildID) or (unitID == currentBuildID)) then
 		Log("CurrentBuild destroyed")
 		BuildBaseInterrupted()
 	end
