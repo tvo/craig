@@ -13,6 +13,15 @@ function base.GameFrame(f)
 function base.UnitCreated(unitID, unitDefID, unitTeam, builderID)
 function base.UnitFinished(unitID, unitDefID, unitTeam)
 function base.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+
+Possible improvements:
+- Give baseBuilders a GUARD order just after they are finished, so they don't
+  wander off towards the enemy first, and then later come back to help building.
+  (Take care of them blocking the factory in case they can assist building from
+  inside the factory...)
+- Rebuild destroyed buildings with higher priority then continuing on BO.
+- Split base builder group in two groups when it becomes too big. This would
+  allow it to truely expand exponentionally :-)
 ]]--
 
 function CreateBaseBuildMgr(myTeamID, myAllyTeamID, mySide, Log)
@@ -128,9 +137,8 @@ function base.GameFrame(f)
 				for _,bo in ipairs(UnitDefs[ud].buildOptions) do
 					if not baseBuildOptions[bo] then
 						Log("Base can now build " .. UnitDefs[bo].humanName)
-						baseBuildOptions[bo] = ud --{}
+						baseBuildOptions[bo] = ud
 					end
-					--baseBuildOptions[bo][ud] = true
 				end
 			end
 		end
@@ -156,9 +164,8 @@ function base.UnitFinished(unitID, unitDefID, unitTeam)
 		for _,bo in ipairs(UnitDefs[unitDefID].buildOptions) do
 			if not baseBuildOptions[bo] then
 				Log("Base can now build " .. UnitDefs[bo].humanName)
-				baseBuildOptions[bo] = unitDefID --{}
+				baseBuildOptions[bo] = unitDefID
 			end
-			--baseBuildOptions[bo][unitDefID] = true
 		end
 	end
 
