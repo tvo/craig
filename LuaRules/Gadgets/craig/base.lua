@@ -81,7 +81,10 @@ local function BuildBase()
 			Log("Restarted baseBuildOrder, next item: " .. UnitDefs[unitDefID].humanName)
 		end
 	until (newIndex == baseBuildIndex) or
-		((Spring.GetTeamUnitDefCount(myTeamID, unitDefID) or 0) < UnitDefs[unitDefID].maxThisUnit)
+		-- check if Spring would block this build (unit restriction)
+		((Spring.GetTeamUnitDefCount(myTeamID, unitDefID) or 0) < UnitDefs[unitDefID].maxThisUnit and
+		-- check if some part of the AI would block this build
+		gadget:AllowUnitCreation(unitDefID, nil, myTeamID))
 
 	local builderDefID = baseBuildOptions[unitDefID]
 	-- nothing to do if we have no builders available yet who can build this

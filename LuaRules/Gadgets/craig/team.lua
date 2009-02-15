@@ -38,6 +38,9 @@ local base = CreateBaseBuildMgr(myTeamID, myAllyTeamID, mySide, Log)
 -- Unit building (one buildOrder per factory)
 local unitBuildOrder = gadget.unitBuildOrder
 
+-- Unit limits
+local unitLimitsMgr = CreateUnitLimitMgr(myTeamID)
+
 local delayedCallQue = { first = 1, last = 0 }
 
 local function DelayedCall(fun)
@@ -97,6 +100,14 @@ function team.GameFrame(f)
 
 	base.GameFrame(f)
 end
+
+--------------------------------------------------------------------------------
+--
+--  Game call-ins
+--
+
+-- Short circuit callin which would otherwise only forward the call..
+team.AllowUnitCreation = unitLimitsMgr.AllowUnitCreation
 
 --------------------------------------------------------------------------------
 --
