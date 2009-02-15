@@ -562,11 +562,8 @@ function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	local _, _, inBuild = GetUnitIsStunned(unitID)
-	if inBuild then
-		widget:UnitCreated(unitID, unitDefID, unitTeam)
-	else
-		widget:UnitFinished(unitID, unitDefID, unitTeam)
+	if (not AreTeamsAllied(unitTeam, newTeam)) then
+		widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	end
 end
 
