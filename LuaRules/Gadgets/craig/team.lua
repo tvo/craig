@@ -132,10 +132,6 @@ function team.UnitFinished(unitID, unitDefID, unitTeam)
 		DelayedCall(function()
 			-- factory or builder?
 			if (UnitDefs[unitDefID].TEDClass == "PLANT") then
-				for _,bo in ipairs(unitBuildOrder[unitDefID]) do
-					Log("Queueing: " .. UnitDefs[bo].humanName)
-					Spring.GiveOrderToUnit(unitID, -bo, {}, {})
-				end
 				-- If there are no enemies, don't bother lagging Spring to death:
 				-- just go through the build queue exactly once, instead of repeating it.
 				if enemyBaseCount > 0 then
@@ -156,6 +152,10 @@ function team.UnitFinished(unitID, unitDefID, unitTeam)
 						idx = idx + 1
 						if idx > enemyBaseCount then idx = 1 end
 					end
+				end
+				for _,bo in ipairs(unitBuildOrder[unitDefID]) do
+					Log("Queueing: " .. UnitDefs[bo].humanName)
+					Spring.GiveOrderToUnit(unitID, -bo, {}, {})
 				end
 			else
 				Log("Warning: unitBuildOrder can only be used to control factories")
