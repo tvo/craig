@@ -7,18 +7,18 @@ interface methods.  Private data is stored in the function's closure.
 
 Public interface:
 
-local team = CreateTeam(myTeamID, myAllyTeamID, mySide)
+local Team = CreateTeam(myTeamID, myAllyTeamID, mySide)
 
-function team.UnitCreated(unitID, unitDefID, unitTeam, builderID)
-function team.UnitFinished(unitID, unitDefID, unitTeam)
-function team.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-function team.UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-function team.UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+function Team.UnitCreated(unitID, unitDefID, unitTeam, builderID)
+function Team.UnitFinished(unitID, unitDefID, unitTeam)
+function Team.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function Team.UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+function Team.UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 ]]--
 
 function CreateTeam(myTeamID, myAllyTeamID, mySide)
 
-local team = {}
+local Team = {}
 
 local Log = function (message)
 	Log("Team[" .. myTeamID .. "] " .. message)
@@ -33,13 +33,13 @@ local enemyBaseCount = 0
 local enemyBaseLastAttacked = 0
 
 -- Base building (one global buildOrder)
-local base = CreateBaseBuildMgr(myTeamID, myAllyTeamID, mySide, Log)
+local baseMgr = CreateBaseMgr(myTeamID, myAllyTeamID, mySide, Log)
 
 -- Unit building (one buildOrder per factory)
 local unitBuildOrder = gadget.unitBuildOrder
 
 -- Unit limits
-local unitLimitsMgr = CreateUnitLimitMgr(myTeamID)
+local unitLimitsMgr = CreateUnitLimitsMgr(myTeamID)
 
 local delayedCallQue = { first = 1, last = 0 }
 
@@ -67,7 +67,7 @@ end
 --  The call-in routines
 --
 
-function team.GameStart()
+function Team.GameStart()
 	Log("GameStart")
 	-- Can not run this in the initialization code at the end of this file,
 	-- because at that time Spring.GetTeamStartPosition seems to always return 0,0,0.
@@ -87,7 +87,7 @@ function team.GameStart()
 	Log("Preparing to attack " .. enemyBaseCount .. " enemies")
 end
 
-function team.GameFrame(f)
+function Team.GameFrame(f)
 	Log("GameFrame")
 
 	Refill("metal")
@@ -98,7 +98,7 @@ function team.GameFrame(f)
 		if fun then fun() else break end
 	end
 
-	base.GameFrame(f)
+	baseMgr.GameFrame(f)
 end
 
 --------------------------------------------------------------------------------
@@ -107,7 +107,7 @@ end
 --
 
 -- Short circuit callin which would otherwise only forward the call..
-team.AllowUnitCreation = unitLimitsMgr.AllowUnitCreation
+Team.AllowUnitCreation = unitLimitsMgr.AllowUnitCreation
 
 --------------------------------------------------------------------------------
 --
@@ -117,9 +117,9 @@ team.AllowUnitCreation = unitLimitsMgr.AllowUnitCreation
 -- Currently unitTeam always equals myTeamID (enforced in gadget)
 
 -- Short circuit callin which would otherwise only forward the call..
-team.UnitCreated = base.UnitCreated
+Team.UnitCreated = baseMgr.UnitCreated
 
-function team.UnitFinished(unitID, unitDefID, unitTeam)
+function Team.UnitFinished(unitID, unitDefID, unitTeam)
 	Log("UnitFinished: " .. UnitDefs[unitDefID].humanName)
 
 	-- idea from BrainDamage: instead of cheating huge amounts of resources,
@@ -163,24 +163,24 @@ function team.UnitFinished(unitID, unitDefID, unitTeam)
 		end)
 	end
 
-	base.UnitFinished(unitID, unitDefID, unitTeam)
+	baseMgr.UnitFinished(unitID, unitDefID, unitTeam)
 end
 
-function team.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function Team.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	Log("UnitDestroyed: " .. UnitDefs[unitDefID].humanName)
 
-	base.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	baseMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 end
 
-function team.UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	team.UnitDestroyed(unitID, unitDefID, unitTeam)
+function Team.UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+	Team.UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
-function team.UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	team.UnitCreated(unitID, unitDefID, unitTeam, nil)
+function Team.UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+	Team.UnitCreated(unitID, unitDefID, unitTeam, nil)
 	local _, _, inBuild = Spring.GetUnitIsStunned(unitID)
 	if not inBuild then
-		team.UnitFinished(unitID, unitDefID, unitTeam)
+		Team.UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
@@ -191,5 +191,5 @@ end
 
 Log("assigned to " .. gadget:GetInfo().name .. " (allyteam: " .. myAllyTeamID .. ", side: " .. mySide .. ")")
 
-return team
+return Team
 end

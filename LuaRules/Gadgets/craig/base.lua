@@ -7,12 +7,12 @@ interface methods.  Private data is stored in the function's closure.
 
 Public interface:
 
-local base = CreateBaseBuildMgr(myTeamID, myAllyTeamID, mySide, Log)
+local BaseMgr = CreateBaseMgr(myTeamID, myAllyTeamID, mySide, Log)
 
-function base.GameFrame(f)
-function base.UnitCreated(unitID, unitDefID, unitTeam, builderID)
-function base.UnitFinished(unitID, unitDefID, unitTeam)
-function base.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function BaseMgr.GameFrame(f)
+function BaseMgr.UnitCreated(unitID, unitDefID, unitTeam, builderID)
+function BaseMgr.UnitFinished(unitID, unitDefID, unitTeam)
+function BaseMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 
 Possible improvements:
 - Give baseBuilders a GUARD order just after they are finished, so they don't
@@ -24,9 +24,9 @@ Possible improvements:
   allow it to truely expand exponentionally :-)
 ]]--
 
-function CreateBaseBuildMgr(myTeamID, myAllyTeamID, mySide, Log)
+function CreateBaseMgr(myTeamID, myAllyTeamID, mySide, Log)
 
-local base = {}
+local BaseMgr = {}
 
 -- Base building (one global buildOrder)
 local buildsiteFinder = CreateBuildsiteFinder(myTeamID)
@@ -130,7 +130,7 @@ end
 --  The call-in routines
 --
 
-function base.GameFrame(f)
+function BaseMgr.GameFrame(f)
 	-- update baseBuildOptions
 	if baseBuildOptionsDirty then
 		baseBuildOptionsDirty = false
@@ -157,7 +157,7 @@ end
 --  Unit call-ins
 --
 
-function base.UnitCreated(unitID, unitDefID, unitTeam, builderID)
+function BaseMgr.UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	buildsiteFinder.UnitCreated(unitID, unitDefID, unitTeam)
 
 	if (not currentBuildID) and (unitDefID == currentBuildDefID) and (builderID == currentBuilder) then
@@ -165,7 +165,7 @@ function base.UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
 end
 
-function base.UnitFinished(unitID, unitDefID, unitTeam)
+function BaseMgr.UnitFinished(unitID, unitDefID, unitTeam)
 	-- update base building
 	if baseBuilders[unitDefID] then
 		-- keep track of all builders we've walking around
@@ -185,7 +185,7 @@ function base.UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
-function base.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function BaseMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	buildsiteFinder.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 
 	-- update baseBuildOptions
@@ -214,5 +214,5 @@ if not baseBuildOrder then
 	error("C.R.A.I.G. is not configured properly to play as " .. mySide)
 end
 
-return base
+return BaseMgr
 end

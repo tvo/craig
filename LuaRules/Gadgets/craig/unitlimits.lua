@@ -7,14 +7,14 @@ interface methods.  Private data is stored in the function's closure.
 
 Public interface:
 
-local UnitLimitMgr = CreateUnitLimitMgr(myTeamID)
+local UnitLimitsMgr = CreateUnitLimitMgr(myTeamID)
 
-function UnitLimitMgr:AllowUnitCreation(unitDefID)
+function UnitLimitsMgr.AllowUnitCreation(unitDefID)
 ]]--
 
-function CreateUnitLimitMgr(myTeamID)
+function CreateUnitLimitsMgr(myTeamID)
 
-local UnitLimitMgr = {}
+local UnitLimitsMgr = {}
 
 -- Format: map unitDefID -> limit
 local limits = gadget.unitLimits
@@ -24,7 +24,7 @@ local limits = gadget.unitLimits
 --  Game call-ins
 --
 
-function UnitLimitMgr.AllowUnitCreation(unitDefID)
+function UnitLimitsMgr.AllowUnitCreation(unitDefID)
 	if limits[unitDefID] then
 		local count = Spring.GetTeamUnitDefCount(myTeamID, unitDefID)
 		return (count or 0) < limits[unitDefID]
@@ -37,5 +37,5 @@ end
 --  Initialization
 --
 
-return UnitLimitMgr
+return UnitLimitsMgr
 end
