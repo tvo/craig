@@ -16,3 +16,7 @@ for dst in `find * -type f ! -name modinfo.lua`; do
 	src="../S44LiteRelease.sdd/$dst"
 	[ -f "$src" ] && cp "$src" "$dst" && dos2unix "$dst"
 done
+
+# Enable debugging.
+sed -i 's/^local CRAIG_Debug_Mode = 0/local CRAIG_Debug_Mode = 1/g' \
+	LuaRules/Gadgets/craig/main.lua
