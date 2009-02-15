@@ -200,8 +200,8 @@ gadget.baseBuilders = {
 	"gbrhqengineer",
 	"gbrengineer",
 	"gbrmatadorengvehicle",
-	"gerengineer",
 	"gerhqengineer",
+	"gerengineer",
 	"gersdkfz9",
 	"ruscommander", -- contrary to other sides Russia can start immediately
 	"ruscommissar", -- after game start with base building...
@@ -216,8 +216,12 @@ gadget.baseBuilders = {
 -- Do not limit units spawned through LUA! (infantry that is build in platoons,
 -- deployed supply trucks, deployed guns, etc.)
 gadget.unitLimits = {
+	gbrengineer = 4,
 	gbrmatadorengvehicle = 1,
+	gerengineer = 4,
 	gersdkfz9 = 1,
+	rusengineer = 4,
 	rusk31 = 1,
+	usengineer = 4,
 	usgmcengvehicle = 1,
 }
