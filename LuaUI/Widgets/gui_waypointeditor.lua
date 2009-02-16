@@ -28,7 +28,7 @@ local selectedTargetWaypoint -- for connecting waypoints
 
 local lastWaypointID = 0
 
--- Format: { id1 = { x1, y1, z1 }, id2 = { x2, y2, z2 }, ... }
+-- Format: { id1 = { x1, y1, z1, id = id1 }, id2 = { x2, y2, z2, id = id2 }, ... }
 local waypoints = {}
 
 -- Format: { [concat(id1, id2)] = true, [concat(id3, id4)] = true, ... }
@@ -44,6 +44,47 @@ local function ToggleConnection(a, b)
 		connections[key] = { a, b }
 	end
 end
+
+
+
+-- Sort for deterministic serialization (better for version control..)
+
+local function Sort(t, compare)
+	local i = 0
+	local ret = {}
+	for k, v in pairs(t) do
+		i = i + 1
+		ret[i] = v
+	end
+	table.sort(ret, compare)
+	return ret
+end
+
+local function Save()
+	local fname = "craig_maps/" .. Game.mapName .. ".lua"
+	local f,err = io.open(fname, "w")
+	if (not f) then
+		Spring.Echo(err)
+		return
+	end
+	f:write("local w = {\n")
+	for _,waypoint in ipairs(Sort(waypoints, function(a, b) return a.id < b.id end)) do
+		f:write("\t{ x = "..floor(waypoint[1])..", y = "..floor(waypoint[2])..", z = "..floor(waypoint[3]).." },\n")
+	end
+	f:write("}\n\n")
+	for _,conn in ipairs(Sort(connections, function(a, b)
+			if a[1].id < b[1].id then return true end
+			if a[1].id > b[1].id then return false end
+			return a[2].id < b[2].id end)) do
+		local left = "w["..conn[1].id.."]"
+		local right = "w["..conn[2].id.."]"
+		f:write(left.."[#"..left.."+1] = "..right.."\n")
+	end
+	f:write("\nreturn w\n")
+	f:close()
+	Spring.Echo("Saved to: " .. fname)
+end
+
 
 
 function widget:GetInfo()
@@ -97,6 +138,10 @@ function widget:KeyPress(key, modifier, isRepeat)
 			selectedWaypoint = nil
 			selectedTargetWaypoint = nil
 		end
+	end
+	if (key == 115) then
+		-- save data 'S'
+		Save()
 	end
 end
 
