@@ -35,12 +35,30 @@ local waypoints = {}
 local connections = {}
 
 
+
+local function AddWaypoint(x, y, z)
+	lastWaypointID = lastWaypointID + 1
+	waypoints[lastWaypointID] = { x, y, z, id = lastWaypointID }
+	return waypoints[lastWaypointID]
+end
+
+
+
 local function ToggleConnection(a, b)
 	if (a.id > b.id) then a,b = b,a end
 	local key = 4096 * a.id + b.id
 	if connections[key] then
 		connections[key] = nil
 	else
+		connections[key] = { a, b }
+	end
+end
+
+
+local function AddConnection(a, b)
+	if (a.id > b.id) then a,b = b,a end
+	local key = 4096 * a.id + b.id
+	if (not connections[key]) then
 		connections[key] = { a, b }
 	end
 end
@@ -68,21 +86,49 @@ local function Save()
 		return
 	end
 	f:write("local w = {\n")
-	for _,waypoint in ipairs(Sort(waypoints, function(a, b) return a.id < b.id end)) do
+	for i,waypoint in ipairs(Sort(waypoints, function(a, b) return a.id < b.id end)) do
 		f:write("\t{ x = "..floor(waypoint[1])..", y = "..floor(waypoint[2])..", z = "..floor(waypoint[3]).." },\n")
+		waypoint.index = i
 	end
 	f:write("}\n\n")
 	for _,conn in ipairs(Sort(connections, function(a, b)
-			if a[1].id < b[1].id then return true end
-			if a[1].id > b[1].id then return false end
-			return a[2].id < b[2].id end)) do
-		local left = "w["..conn[1].id.."]"
-		local right = "w["..conn[2].id.."]"
+			if a[1].index < b[1].index then return true end
+			if a[1].index > b[1].index then return false end
+			return a[2].index < b[2].index end)) do
+		local left = "w["..conn[1].index.."]"
+		local right = "w["..conn[2].index.."]"
+		-- connect in two directions
 		f:write(left.."[#"..left.."+1] = "..right.."\n")
+		f:write(right.."[#"..right.."+1] = "..left.."\n")
 	end
 	f:write("\nreturn w\n")
 	f:close()
 	Spring.Echo("Saved to: " .. fname)
+end
+
+local function Load()
+	-- load chunk
+	local fname = "craig_maps/" .. Game.mapName .. ".lua"
+	local chunk,err = loadfile(fname)
+	if (not chunk) then
+		Spring.Echo(err)
+		return
+	end
+	-- execute chunk
+	local data = chunk()
+	-- clear any existing data
+	lastWaypointID = 0
+	waypoints = {}
+	connections = {}
+	for _,v in ipairs(data) do
+		v.waypoint = AddWaypoint(v.x, v.y, v.z)
+	end
+	for _,v in ipairs(data) do
+		for _,w in ipairs(v) do
+			AddConnection(v.waypoint, w.waypoint)
+		end
+	end
+	Spring.Echo("Loaded from: " .. fname)
 end
 
 
@@ -100,9 +146,11 @@ function widget:GetInfo()
 end
 
 function widget:Initialize()
+	Load()
 end
 
 function widget:Shutdown()
+	Save()
 end
 
 
@@ -122,8 +170,7 @@ function widget:KeyPress(key, modifier, isRepeat)
 		local mx, my, lmb, _, _ = GetMouseState()
 		local _, coors = TraceScreenRay(mx, my, true)
 		if (coors ~= nil) then
-			lastWaypointID = lastWaypointID + 1
-			waypoints[lastWaypointID] = { coors[1], coors[2], coors[3], id = lastWaypointID }
+			AddWaypoint(unpack(coors))
 		end
 	end
 	if (key == 109) then
@@ -142,6 +189,10 @@ function widget:KeyPress(key, modifier, isRepeat)
 	if (key == 115) then
 		-- save data 'S'
 		Save()
+	end
+	if (key == 108) then
+		-- load data 'L'
+		Load()
 	end
 end
 
