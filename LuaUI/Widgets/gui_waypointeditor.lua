@@ -18,6 +18,7 @@ local insert = table.insert
 local glVertex = gl.Vertex
 local glBeginEnd = gl.BeginEnd
 local glColor = gl.Color
+local glLineWidth = gl.LineWidth
 local glLineStipple = gl.LineStipple
 local glDrawGroundCircle = gl.DrawGroundCircle
 
@@ -29,13 +30,14 @@ local controlPressed = false
 local altPressed = false
 local lmbOld = false
 local tweakMode = false
-local selectedWaypoints = {}
+local selectedWaypoint
 
-local noShift = false
+local noShift = true
 local doUpdate = false
 
 local waypoints = {
-	{ 6000, 6000 },
+	{ 6000, 33, 6000 },
+	{ 6200, 33, 6000 },
 }
 
 
@@ -97,49 +99,10 @@ function UpdateWaypoints(mx, my)
 	local _, coors = TraceScreenRay(mx, my, true)
 	local dict = {}
 
-	if (coors ~= nil) then
+	if (coors ~= nil) and (selectedWaypoint ~= nil) then
 		local x, y, z = coors[1], coors[2], coors[3]
-
-		for key, waypoint in pairs(selectedWaypoints) do
-			local commandNum = waypoint[4]
-			local commandID = waypoint[5]
-			local commandTag = waypoint[6]
-			local unitID = waypoint[7]
-			local key = tostring(unitID)
-			local b = (dict[key] == nil)
-
-			-- TODO: check if waypoint still valid (if WP
-			-- of type CMD_MOVE then unit may have already
-			-- reached it when button released) otherwise
-			-- we end up inserting new one at end of queue
-			if (true) then
-				if (b) then
-					-- if we have already given an insert order to
-					-- this unit, just delete the other waypoints
-					-- belonging to it that we've selected (instead
-					-- of moving them to the same new position too)
-					GiveOrderToUnit(unitID, CMD.INSERT, {commandNum, commandID, 0, x, y, z}, {"alt"})
-					dict[key] = 1
-				end
-
-				if (not altPressed) then
-					-- NOTE: broken for idle factories prior to
-					-- Spring r4162 (for move and patrol orders)
-					GiveOrderToUnit(unitID, CMD.REMOVE, {commandTag}, {""})
-				end
-			end
-		end
+		selectedWaypoint[1], selectedWaypoint[2], selectedWaypoint[3] = x, y, z
 	end
-end
-
-
-
-function AddWaypoint(waypoint, key)
-	selectedWaypoints[key] = waypoint
-end
-
-function ClearWaypoints()
-	selectedWaypoints = {}
 end
 
 
@@ -161,50 +124,25 @@ function widget:Update(_)
 	doUpdate = (shiftPressed or noShift)
 
 	if (doUpdate) then
-		local selUnits = GetSelectedUnits()
 		local mx, my, lmb, _, _ = GetMouseState()
 
 		if (not lmb) then
 			if (lmbOld) then
 				-- we stopped dragging
 				MouseReleased(mx, my)
-				ClearWaypoints()
+				selectedWaypoint = nil
 			end
-			if (not controlPressed) then
-				-- if we aren't holding control then
-				-- continuously clear all waypoints
-				-- so we can drag only one per unit
-				ClearWaypoints()
-			end
-		end
-
-		for i = 1, getn(selUnits) do
-			local unitID = selUnits[i]
-			local commands = GetCommandQueue(unitID)
-
-			for j = 1, getn(commands) do
-				local commandNum = j
-				local command = commands[j]
-				local commandID = command.id
-				local commandTag = command.tag
-				local params = command.params
-				local options = command.options
-				local draggable = (commandID == CMD.MOVE or commandID == CMD.PATROL)
-
-				if (draggable) then
-					-- measure distance from waypoint to cursor in screen-coors
-					local x, y, z = params[1], params[2], params[3]
+		else
+			if (not lmbOld) then
+				for i, waypoint in ipairs(waypoints) do
+					local x, y, z = waypoint[1], waypoint[2], waypoint[3]
 					local p, q = WorldToScreenCoords(x, y, z)
 					local d = GetDist(mx, my, p, q)
 
 					if (d < 64) then
-						local waypoint = {x, y, z, commandNum, commandID, commandTag, unitID}
-						local key = tostring(unitID) .. "-" .. tostring(commandNum)
-
-						AddWaypoint(waypoint, key)
+						selectedWaypoint = waypoint
 					end
 				end
-
 			end
 		end
 
@@ -218,35 +156,35 @@ function widget:DrawWorld()
 	local mx, my, lmb, _, _ = GetMouseState()
 	local _, coors = TraceScreenRay(mx, my, true)
 
-	for _, waypoint in pairs(selectedWaypoints) do
+	glColor(1.0, 0.0, 0.0, 1.0)
+	glLineWidth(5.0)
+
+	for _, waypoint in pairs(waypoints) do
 		local x, y, z = waypoint[1], waypoint[2], waypoint[3]
 		local p, q = WorldToScreenCoords(x, y, z)
 		local d = GetDist(mx, my, p, q)
 		local commandID = waypoint[5]
 
-		if (doUpdate and (d < 64 or lmb or controlPressed)) then
-			if (commandID == CMD.MOVE) then glColor(0.5, 1.0, 0.5, 0.7) end
-			if (commandID == CMD.PATROL) then glColor(0.3, 0.3, 1.0, 0.7) end
-
-			glDrawGroundCircle(x, y, z, 64, 16)
-		end
-
-		if (doUpdate and lmb) then
-			if (coors ~= nil) then
-				-- draw line from waypoint to world-coors of mouse cursor
-				local k, l, m = coors[1], coors[2], coors[3]
-				local pattern = (65536 - 775)
-				local shift = floor(mod(GetGameSeconds() * 16, 16))
-
-				glLineStipple(2, pattern, -shift)
-				glBeginEnd(GL.LINES,
-					function()
-						glVertex(x, y, z)
-						glVertex(k, l, m)
-					end
-				)
-				glLineStipple(false)
-			end
-		end
+		glDrawGroundCircle(x, y, z, 64, 16)
 	end
+
+	if (coors ~= nil) and (selectedWaypoint ~= nil) then
+		-- draw line from waypoint to world-coors of mouse cursor
+		local x, y, z = selectedWaypoint[1], selectedWaypoint[2], selectedWaypoint[3]
+		local k, l, m = coors[1], coors[2], coors[3]
+		local pattern = (65536 - 775)
+		local shift = floor(mod(GetGameSeconds() * 16, 16))
+
+		glLineStipple(2, pattern, -shift)
+		glBeginEnd(GL.LINES,
+			function()
+				glVertex(x, y, z)
+				glVertex(k, l, m)
+			end
+		)
+		glLineStipple(false)
+	end
+
+	glLineWidth(1.0)
+	glColor(1.0, 1.0, 1.0, 1.0)
 end
