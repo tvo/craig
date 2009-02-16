@@ -1,3 +1,8 @@
+-- Author: Tobi Vollebregt
+-- License: GNU General Public License v2
+
+-- based on unit_WaypointDragger.lua by Kloot
+
 local GetGameSeconds = Spring.GetGameSeconds
 local GetMouseState = Spring.GetMouseState
 
@@ -141,7 +146,7 @@ function widget:GetInfo()
 		date      = "February 16, 2009",
 		license   = "GNU GPL v2",
 		layer     = 5,
-		enabled   = true
+		enabled   = false
 	}
 end
 
