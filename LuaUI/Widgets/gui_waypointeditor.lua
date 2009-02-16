@@ -29,19 +29,22 @@ local controlPressed = false
 local altPressed = false
 local lmbOld = false
 local tweakMode = false
-local selectedWayPoints = {}
+local selectedWaypoints = {}
 
 local noShift = false
 local doUpdate = false
 
+local waypoints = {
+	{ 6000, 6000 },
+}
 
 
 function widget:GetInfo()
 	return {
-		name      = "WaypointDragger",
-		desc      = "Enables Waypoint Dragging",
-		author    = "Kloot",
-		date      = "August 8, 2007",
+		name      = "Waypoint Editor",
+		desc      = "Waypoint Editor for C.R.A.I.G.",
+		author    = "Tobi Vollebregt (based on WaypointDragger by Kloot)",
+		date      = "February 16, 2009",
 		license   = "GNU GPL v2",
 		layer     = 5,
 		enabled   = true
@@ -90,14 +93,14 @@ end
 
 
 
-function UpdateWayPoints(mx, my)
+function UpdateWaypoints(mx, my)
 	local _, coors = TraceScreenRay(mx, my, true)
 	local dict = {}
 
 	if (coors ~= nil) then
 		local x, y, z = coors[1], coors[2], coors[3]
 
-		for key, waypoint in pairs(selectedWayPoints) do
+		for key, waypoint in pairs(selectedWaypoints) do
 			local commandNum = waypoint[4]
 			local commandID = waypoint[5]
 			local commandTag = waypoint[6]
@@ -131,12 +134,12 @@ end
 
 
 
-function AddWayPoint(waypoint, key)
-	selectedWayPoints[key] = waypoint
+function AddWaypoint(waypoint, key)
+	selectedWaypoints[key] = waypoint
 end
 
-function ClearWayPoints()
-	selectedWayPoints = {}
+function ClearWaypoints()
+	selectedWaypoints = {}
 end
 
 
@@ -144,7 +147,7 @@ end
 function MouseReleased(mx, my)
 	-- we were dragging a waypoint and released LMB
 	-- while holding shift, finalize new waypoint
-	UpdateWayPoints(mx, my)
+	UpdateWaypoints(mx, my)
 
 	-- TODO: reselect all units from before LMB was
 	-- released via SelectUnitArray(units) for better
@@ -165,13 +168,13 @@ function widget:Update(_)
 			if (lmbOld) then
 				-- we stopped dragging
 				MouseReleased(mx, my)
-				ClearWayPoints()
+				ClearWaypoints()
 			end
 			if (not controlPressed) then
 				-- if we aren't holding control then
 				-- continuously clear all waypoints
 				-- so we can drag only one per unit
-				ClearWayPoints()
+				ClearWaypoints()
 			end
 		end
 
@@ -198,7 +201,7 @@ function widget:Update(_)
 						local waypoint = {x, y, z, commandNum, commandID, commandTag, unitID}
 						local key = tostring(unitID) .. "-" .. tostring(commandNum)
 
-						AddWayPoint(waypoint, key)
+						AddWaypoint(waypoint, key)
 					end
 				end
 
@@ -215,7 +218,7 @@ function widget:DrawWorld()
 	local mx, my, lmb, _, _ = GetMouseState()
 	local _, coors = TraceScreenRay(mx, my, true)
 
-	for _, waypoint in pairs(selectedWayPoints) do
+	for _, waypoint in pairs(selectedWaypoints) do
 		local x, y, z = waypoint[1], waypoint[2], waypoint[3]
 		local p, q = WorldToScreenCoords(x, y, z)
 		local d = GetDist(mx, my, p, q)
