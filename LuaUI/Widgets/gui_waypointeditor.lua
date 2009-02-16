@@ -1,10 +1,5 @@
 local GetGameSeconds = Spring.GetGameSeconds
-local GetSelectedUnits = Spring.GetSelectedUnits
-local GetCommandQueue = Spring.GetCommandQueue
-local GetUnitCommands = Spring.GetUnitCommands
 local GetMouseState = Spring.GetMouseState
-local GiveOrderToUnit = Spring.GiveOrderToUnit
-local SelectUnitArray = Spring.SelectUnitArray
 
 local WorldToScreenCoords = Spring.WorldToScreenCoords
 local TraceScreenRay = Spring.TraceScreenRay
@@ -12,8 +7,6 @@ local TraceScreenRay = Spring.TraceScreenRay
 local floor = math.floor
 local mod = math.fmod
 local sqrt = math.sqrt
-local getn = table.getn
-local insert = table.insert
 
 local glVertex = gl.Vertex
 local glBeginEnd = gl.BeginEnd
@@ -29,16 +22,28 @@ local shiftPressed = false
 local controlPressed = false
 local altPressed = false
 local lmbOld = false
-local tweakMode = false
+
 local selectedWaypoint
+local selectedTargetWaypoint -- for connecting waypoints
 
-local noShift = true
-local doUpdate = false
+local lastWaypointID = 0
 
-local waypoints = {
-	{ 6000, 33, 6000 },
-	{ 6200, 33, 6000 },
-}
+-- Format: { id1 = { x1, y1, z1 }, id2 = { x2, y2, z2 }, ... }
+local waypoints = {}
+
+-- Format: { [concat(id1, id2)] = true, [concat(id3, id4)] = true, ... }
+local connections = {}
+
+
+local function ToggleConnection(a, b)
+	if (a.id > b.id) then a,b = b,a end
+	local key = 4096 * a.id + b.id
+	if connections[key] then
+		connections[key] = nil
+	else
+		connections[key] = { a, b }
+	end
+end
 
 
 function widget:GetInfo()
@@ -71,7 +76,31 @@ function widget:KeyPress(key, modifier, isRepeat)
 	if (modifier.ctrl) then
 		controlPressed = true
 	end
+	if (key == 110) then
+		-- new waypoint 'N'
+		local mx, my, lmb, _, _ = GetMouseState()
+		local _, coors = TraceScreenRay(mx, my, true)
+		if (coors ~= nil) then
+			lastWaypointID = lastWaypointID + 1
+			waypoints[lastWaypointID] = { coors[1], coors[2], coors[3], id = lastWaypointID }
+		end
+	end
+	if (key == 109) then
+		-- delete waypoint 'M'
+		if (selectedWaypoint ~= nil) then
+			for k,v in pairs(connections) do
+				if (v[1] == selectedWaypoint) or (v[2] == selectedWaypoint) then
+					connections[k] = nil
+				end
+			end
+			waypoints[selectedWaypoint.id] = nil
+			selectedWaypoint = nil
+			selectedTargetWaypoint = nil
+		end
+	end
 end
+
+
 
 function widget:KeyRelease(key)
 	if (key == shiftKey) then
@@ -95,59 +124,64 @@ end
 
 
 
-function UpdateWaypoints(mx, my)
+function UpdateWaypoint(mx, my)
 	local _, coors = TraceScreenRay(mx, my, true)
 	local dict = {}
 
 	if (coors ~= nil) and (selectedWaypoint ~= nil) then
-		local x, y, z = coors[1], coors[2], coors[3]
-		selectedWaypoint[1], selectedWaypoint[2], selectedWaypoint[3] = x, y, z
+		if (selectedTargetWaypoint ~= nil) then
+			ToggleConnection(selectedWaypoint, selectedTargetWaypoint)
+		else
+			-- move a waypoint
+			local x, y, z = coors[1], coors[2], coors[3]
+			selectedWaypoint[1], selectedWaypoint[2], selectedWaypoint[3] = x, y, z
+		end
 	end
 end
 
 
 
-function MouseReleased(mx, my)
-	-- we were dragging a waypoint and released LMB
-	-- while holding shift, finalize new waypoint
-	UpdateWaypoints(mx, my)
-
-	-- TODO: reselect all units from before LMB was
-	-- released via SelectUnitArray(units) for better
-	-- alwaysDrawQueue=1 support
+local function MouseReleased(mx, my)
+	UpdateWaypoint(mx, my)
 end
 
+
+local function FindWaypoint(mx, my)
+	for _, waypoint in pairs(waypoints) do
+		local x, y, z = waypoint[1], waypoint[2], waypoint[3]
+		local p, q = WorldToScreenCoords(x, y, z)
+		local d = GetDist(mx, my, p, q)
+
+		if (d < 64) then
+			return waypoint
+		end
+	end
+	return nil
+end
 
 
 function widget:Update(_)
-	tweakMode = widgetHandler:InTweakMode()
-	doUpdate = (shiftPressed or noShift)
+	local mx, my, lmb, _, _ = GetMouseState()
 
-	if (doUpdate) then
-		local mx, my, lmb, _, _ = GetMouseState()
-
-		if (not lmb) then
-			if (lmbOld) then
-				-- we stopped dragging
-				MouseReleased(mx, my)
-				selectedWaypoint = nil
-			end
+	if (not lmb) then
+		if (lmbOld) then
+			-- we stopped dragging
+			MouseReleased(mx, my)
+			selectedWaypoint = nil
+			selectedTargetWaypoint = nil
+		end
+	else
+		if (not lmbOld) then
+			selectedWaypoint = FindWaypoint(mx, my)
 		else
-			if (not lmbOld) then
-				for i, waypoint in ipairs(waypoints) do
-					local x, y, z = waypoint[1], waypoint[2], waypoint[3]
-					local p, q = WorldToScreenCoords(x, y, z)
-					local d = GetDist(mx, my, p, q)
-
-					if (d < 64) then
-						selectedWaypoint = waypoint
-					end
-				end
+			selectedTargetWaypoint = FindWaypoint(mx, my)
+			if (selectedWaypoint == selectedTargetWaypoint) then
+				selectedTargetWaypoint = nil
 			end
 		end
-
-		lmbOld = lmb
 	end
+
+	lmbOld = lmb
 end
 
 
@@ -156,8 +190,19 @@ function widget:DrawWorld()
 	local mx, my, lmb, _, _ = GetMouseState()
 	local _, coors = TraceScreenRay(mx, my, true)
 
-	glColor(1.0, 0.0, 0.0, 1.0)
-	glLineWidth(5.0)
+	--glLineWidth(5.0)
+	glColor(0.0, 1.0, 0.0, 1.0)
+
+	for _,v in pairs(connections) do
+		local a, b = v[1], v[2]
+
+		glBeginEnd(GL.LINES,
+			function()
+				glVertex(a[1], a[2], a[3])
+				glVertex(b[1], b[2], b[3])
+			end
+		)
+	end
 
 	for _, waypoint in pairs(waypoints) do
 		local x, y, z = waypoint[1], waypoint[2], waypoint[3]
@@ -165,7 +210,15 @@ function widget:DrawWorld()
 		local d = GetDist(mx, my, p, q)
 		local commandID = waypoint[5]
 
-		glDrawGroundCircle(x, y, z, 64, 16)
+		if (d < 64) or (waypoint == selectedWaypoint) or (waypoint == selectedTargetWaypoint) then
+			glColor(1.0, 1.0, 1.0, 1.0)
+			glLineWidth(3.0)
+			glDrawGroundCircle(x, y, z, 64, 16)
+			glLineWidth(1.0)
+			glColor(0.0, 1.0, 0.0, 1.0)
+		else
+			glDrawGroundCircle(x, y, z, 64, 16)
+		end
 	end
 
 	if (coors ~= nil) and (selectedWaypoint ~= nil) then
@@ -175,6 +228,7 @@ function widget:DrawWorld()
 		local pattern = (65536 - 775)
 		local shift = floor(mod(GetGameSeconds() * 16, 16))
 
+		glColor(1.0, 1.0, 1.0, 1.0)
 		glLineStipple(2, pattern, -shift)
 		glBeginEnd(GL.LINES,
 			function()
@@ -185,6 +239,6 @@ function widget:DrawWorld()
 		glLineStipple(false)
 	end
 
-	glLineWidth(1.0)
+	--glLineWidth(1.0)
 	glColor(1.0, 1.0, 1.0, 1.0)
 end
