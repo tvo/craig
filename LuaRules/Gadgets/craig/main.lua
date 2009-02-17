@@ -103,6 +103,10 @@ end
 
 function gadget:Initialize()
 	--Log("gadget:Initialize")
+	setmetatable(gadget, {
+		__index = function() error("Attempt to read undeclared global variable", 2) end,
+		__newindex = function() error("Attempt to write undeclared global variable", 2) end,
+	})
 	SetupCmdChangeAIDebugVerbosity()
 end
 
@@ -197,5 +201,5 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 end
 
 -- This may be called by engine from inside Spring.GiveOrderToUnit (e.g. if unit limit is reached)
-function gadget:UnitIdle(unitID, unitDefID, unitTeam)
-end
+--function gadget:UnitIdle(unitID, unitDefID, unitTeam)
+--end
