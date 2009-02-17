@@ -83,9 +83,9 @@ local function SetupCmdChangeAIDebugVerbosity()
 	Script.AddActionFallback(cmd .. ' ',help)
 end
 
-function Log(message)
+function gadget.Log(...)
 	if CRAIG_Debug_Mode > 0 then
-		Spring.Echo("C.R.A.I.G.: " .. message)
+		Spring.Echo("C.R.A.I.G.: " .. table.concat{...})
 	end
 end
 
@@ -102,7 +102,6 @@ end
 --  gadget:GameStart
 
 function gadget:Initialize()
-	--Log("gadget:Initialize")
 	setmetatable(gadget, {
 		__index = function() error("Attempt to read undeclared global variable", 2) end,
 		__newindex = function() error("Attempt to write undeclared global variable", 2) end,
@@ -112,10 +111,9 @@ end
 
 function gadget:GamePreload()
 	-- This is executed BEFORE headquarters / commander is spawned
-	--Log("gadget:GamePreload")
+	Log("gadget:GamePreload")
 	-- Initialise AI for all team that are set to use it
 	for _,t in ipairs(Spring.GetTeamList()) do
-		--Log("considering team " .. t)
 		if Spring.GetTeamLuaAI(t) == gadget:GetInfo().name then
 			local _,_,_,_,side,at = Spring.GetTeamInfo(t)
 			team[t] = CreateTeam(t, at, side)
@@ -125,7 +123,7 @@ end
 
 function gadget:GameStart()
 	-- This is executed AFTER headquarters / commander is spawned
-	--Log("gadget:GameStart")
+	Log("gadget:GameStart")
 	for _,t in pairs(team) do
 		t.GameStart()
 	end
@@ -148,7 +146,7 @@ end
 function gadget:TeamDied(teamID)
 	if team[teamID] then
 		team[teamID] = nil
-		Log("removed team " .. teamID)
+		Log("removed team ", teamID)
 	end
 
 	--TODO: need to call this for other/enemy teams too, so a team

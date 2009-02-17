@@ -9,6 +9,7 @@ Public interface:
 
 local Team = CreateTeam(myTeamID, myAllyTeamID, mySide)
 
+function Team.Log(...)
 function Team.UnitCreated(unitID, unitDefID, unitTeam, builderID)
 function Team.UnitFinished(unitID, unitDefID, unitTeam)
 function Team.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
@@ -20,9 +21,13 @@ function CreateTeam(myTeamID, myAllyTeamID, mySide)
 
 local Team = {}
 
-local Log = function (message)
-	Log("Team[" .. myTeamID .. "] " .. message)
+do
+	local GadgetLog = gadget.Log
+	function Team.Log(...)
+		GadgetLog("Team[", myTeamID, "] ", ...)
+	end
 end
+local Log = Team.Log
 
 -- constants
 local GAIA_TEAM_ID = Spring.GetGaiaTeamID()
@@ -72,19 +77,19 @@ function Team.GameStart()
 	-- Can not run this in the initialization code at the end of this file,
 	-- because at that time Spring.GetTeamStartPosition seems to always return 0,0,0.
 	for _,t in ipairs(Spring.GetTeamList()) do
-		--Log("considering team " .. t)
+		--Log("considering team ", t)
 		if (t ~= GAIA_TEAM_ID) and (not Spring.AreTeamsAllied(myTeamID, t)) then
 			local x,y,z = Spring.GetTeamStartPosition(t)
 			if x and x ~= 0 then
 				enemyBaseCount = enemyBaseCount + 1
 				enemyBases[enemyBaseCount] = {x,y,z}
-				Log("Enemy base spotted at coordinates: " .. x .. ", " .. z)
+				Log("Enemy base spotted at coordinates: ", x, ", ", z)
 			else
 				Log("Oops, Spring.GetTeamStartPosition failed")
 			end
 		end
 	end
-	Log("Preparing to attack " .. enemyBaseCount .. " enemies")
+	Log("Preparing to attack ", enemyBaseCount, " enemies")
 end
 
 function Team.GameFrame(f)
@@ -120,7 +125,7 @@ Team.AllowUnitCreation = unitLimitsMgr.AllowUnitCreation
 Team.UnitCreated = baseMgr.UnitCreated
 
 function Team.UnitFinished(unitID, unitDefID, unitTeam)
-	Log("UnitFinished: " .. UnitDefs[unitDefID].humanName)
+	Log("UnitFinished: ", UnitDefs[unitDefID].humanName)
 
 	-- idea from BrainDamage: instead of cheating huge amounts of resources,
 	-- just cheat in the cost of the units we build.
@@ -154,7 +159,7 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 					end
 				end
 				for _,bo in ipairs(unitBuildOrder[unitDefID]) do
-					Log("Queueing: " .. UnitDefs[bo].humanName)
+					Log("Queueing: ", UnitDefs[bo].humanName)
 					Spring.GiveOrderToUnit(unitID, -bo, {}, {})
 				end
 			else
@@ -167,7 +172,7 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function Team.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	Log("UnitDestroyed: " .. UnitDefs[unitDefID].humanName)
+	Log("UnitDestroyed: ", UnitDefs[unitDefID].humanName)
 
 	baseMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 end
@@ -189,7 +194,7 @@ end
 --  Initialization
 --
 
-Log("assigned to " .. gadget:GetInfo().name .. " (allyteam: " .. myAllyTeamID .. ", side: " .. mySide .. ")")
+Log("assigned to ", gadget.ghInfo.name, " (allyteam: ", myAllyTeamID, ", side: ", mySide, ")")
 
 return Team
 end
