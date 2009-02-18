@@ -15,12 +15,15 @@ function WaypointMgr.GameFrame(f)
 function CreateWaypointMgr()
 
 -- constants
+local GAIA_TEAM_ID = Spring.GetGaiaTeamID()
 local WAYPOINT_RADIUS = 230 --taken to be same as flag radius
 local WAYPOINT_HEIGHT = 100
 
 -- speedups
 local Log = Log
 local GetUnitsInBox = Spring.GetUnitsInBox
+local GetUnitsInCylinder = Spring.GetUnitsInCylinder
+local GetUnitDefID = Spring.GetUnitDefID
 
 -- class
 local WaypointMgr = {}
@@ -38,13 +41,31 @@ local teamToAllyteam = {}
 --  The call-in routines
 --
 
+local function FlagsCreated()
+	for _,p in ipairs(waypoints) do
+		-- Cylinder check because it's more natural then box
+		-- (used in GameFrame), and there are no gaia aircraft.
+		local units = GetUnitsInCylinder(p.x, p.z, WAYPOINT_RADIUS, GAIA_TEAM_ID)
+		for _,u in ipairs(units) do
+			local ud = GetUnitDefID(u)
+			if (UnitDefs[ud].name == "flag") then
+				Log("Flag found near ", p.x, ", ", p.z)
+				p.hasFlags = true
+			end
+		end
+	end
+end
+
 function WaypointMgr.GameFrame(f)
+	if (f == 128) then -- flags are created in frame 5
+		FlagsCreated()
+	end
 	-- TODO: what's faster, one GetUnitsInBox query for each team
 	-- or a single query and then counting units per allyeam team in LUA?
 	-- TODO: spread out update over multiple GameFrames?
 	for _,p in ipairs(waypoints) do
 		-- Box check (as opposed to Rectangle, Sphere, Cylinder),
-		-- because this allows us to easily exclude planes.
+		-- because this allows us to easily exclude aircraft.
 		local x1, y1, z1 = p.x - WAYPOINT_RADIUS, p.y - WAYPOINT_HEIGHT, p.z - WAYPOINT_RADIUS
 		local x2, y2, z2 = p.x + WAYPOINT_RADIUS, p.y + WAYPOINT_HEIGHT, p.z + WAYPOINT_RADIUS
 		local allyTeamUnitCount = {}
@@ -110,9 +131,8 @@ Log(#waypoints, " waypoints succesfully loaded.")
 
 -- make map of teams to allyTeams
 -- this must contain not only AI teams, but also player teams!
-local gaiaTeamID = Spring.GetGaiaTeamID()
 for _,t in ipairs(Spring.GetTeamList()) do
-	if (t ~= gaiaTeamID) then
+	if (t ~= GAIA_TEAM_ID) then
 		local _,_,_,_,_,at = Spring.GetTeamInfo(t)
 		teamToAllyteam[t] = at
 	end
