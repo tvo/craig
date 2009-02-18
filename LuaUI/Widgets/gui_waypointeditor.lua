@@ -97,6 +97,10 @@ end
 
 local function Save()
 	local waypoints = Sort(waypoints, function(a, b) return a.id < b.id end)
+	if #waypoints == 0 then
+		Spring.Echo("Nothing to save")
+		return
+	end
 	local fname = "craig_maps/" .. Game.mapName .. ".lua"
 	local f,err = io.open(fname, "w")
 	if (not f) then
