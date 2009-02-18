@@ -52,11 +52,13 @@ include("LuaRules/Gadgets/craig/buildsite.lua")
 include("LuaRules/Gadgets/craig/base.lua")
 include("LuaRules/Gadgets/craig/unitlimits.lua")
 include("LuaRules/Gadgets/craig/team.lua")
+include("LuaRules/Gadgets/craig/waypoints.lua")
 
 -- globals
 local CRAIG_Debug_Mode = 1 -- Must be 0 or 1
 
 local team = {}
+local waypointMgr
 
 local function ChangeAIDebugVerbosity(cmd,line,words,player)
 	local lvl = tonumber(words[1])
@@ -89,6 +91,11 @@ function gadget.Log(...)
 	end
 end
 
+-- This is for log messages which can not be turned off (e.g. while loading.)
+function gadget.Warning(...)
+	Spring.Echo("C.R.A.I.G.: " .. table.concat{...})
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
@@ -112,6 +119,8 @@ end
 function gadget:GamePreload()
 	-- This is executed BEFORE headquarters / commander is spawned
 	Log("gadget:GamePreload")
+	-- Intialise waypoint manager
+	waypointMgr = CreateWaypointMgr()
 	-- Initialise AI for all team that are set to use it
 	for _,t in ipairs(Spring.GetTeamList()) do
 		if Spring.GetTeamLuaAI(t) == gadget:GetInfo().name then
@@ -135,6 +144,7 @@ function gadget:GameFrame(f)
 		for _,t in pairs(team) do
 			t.GameFrame(f)
 		end
+		if waypointMgr then waypointMgr.GameFrame(f) end
 	end
 end
 
