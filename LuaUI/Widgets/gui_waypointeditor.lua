@@ -3,6 +3,18 @@
 
 -- based on unit_WaypointDragger.lua by Kloot
 
+--[[
+QUICK INSTRUCTIONS
+
+N - Create new waypoint
+M - Delete the waypoint that is being dragged
+L - (Re)load waypoint data, THIS DISCARDS THE WAYPOINTS IN MEMORY!
+S - Save waypoint data
+
+Load & save are automatically performed on Initialize / Shutdown.
+Up to 200 waypoints supported.
+]]--
+
 local GetGameSeconds = Spring.GetGameSeconds
 local GetMouseState = Spring.GetMouseState
 
@@ -84,6 +96,7 @@ local function Sort(t, compare)
 end
 
 local function Save()
+	local waypoints = Sort(waypoints, function(a, b) return a.id < b.id end)
 	local fname = "craig_maps/" .. Game.mapName .. ".lua"
 	local f,err = io.open(fname, "w")
 	if (not f) then
@@ -92,8 +105,10 @@ local function Save()
 	end
 	f:write("-- THIS IS A GENERATED FILE, DO NOT EDIT\n\n")
 	f:write("local w = AddWaypoint\nlocal c = AddConnection\n\n")
-	for i,waypoint in ipairs(Sort(waypoints, function(a, b) return a.id < b.id end)) do
-		f:write("local _"..i.." = w("..floor(waypoint[1])..", "..floor(waypoint[2])..", "..floor(waypoint[3])..")\n")
+	local prefix = "local "
+	for i,waypoint in ipairs(waypoints) do
+		if i == 199 then prefix = "" end
+		f:write(prefix.."_"..i.." = w("..floor(waypoint[1])..", "..floor(waypoint[2])..", "..floor(waypoint[3])..")\n")
 		waypoint.index = i
 	end
 	f:write("\n")
