@@ -90,23 +90,19 @@ local function Save()
 		Spring.Echo(err)
 		return
 	end
-	f:write("local w = {\n")
+	f:write("-- THIS IS A GENERATED FILE, DO NOT EDIT\n\n")
+	f:write("local w = AddWaypoint\nlocal c = AddConnection\n\n")
 	for i,waypoint in ipairs(Sort(waypoints, function(a, b) return a.id < b.id end)) do
-		f:write("\t{ x = "..floor(waypoint[1])..", y = "..floor(waypoint[2])..", z = "..floor(waypoint[3]).." },\n")
+		f:write("local _"..i.." = w("..floor(waypoint[1])..", "..floor(waypoint[2])..", "..floor(waypoint[3])..")\n")
 		waypoint.index = i
 	end
-	f:write("}\n\n")
+	f:write("\n")
 	for _,conn in ipairs(Sort(connections, function(a, b)
 			if a[1].index < b[1].index then return true end
 			if a[1].index > b[1].index then return false end
 			return a[2].index < b[2].index end)) do
-		local left = "w["..conn[1].index.."]"
-		local right = "w["..conn[2].index.."]"
-		-- connect in two directions
-		f:write(left.."[#"..left.."+1] = "..right.."\n")
-		f:write(right.."[#"..right.."+1] = "..left.."\n")
+		f:write("c(_"..conn[1].index..", _"..conn[2].index..")\n")
 	end
-	f:write("\nreturn w\n")
 	f:close()
 	Spring.Echo("Saved to: " .. fname)
 end
@@ -119,20 +115,13 @@ local function Load()
 		Spring.Echo(err)
 		return
 	end
-	-- execute chunk
-	local data = chunk()
 	-- clear any existing data
 	lastWaypointID = 0
 	waypoints = {}
 	connections = {}
-	for _,v in ipairs(data) do
-		v.waypoint = AddWaypoint(v.x, v.y, v.z)
-	end
-	for _,v in ipairs(data) do
-		for _,w in ipairs(v) do
-			AddConnection(v.waypoint, w.waypoint)
-		end
-	end
+	-- execute chunk
+	setfenv(chunk, {AddWaypoint = AddWaypoint, AddConnection = AddConnection})
+	local data = chunk()
 	Spring.Echo("Loaded from: " .. fname)
 end
 
