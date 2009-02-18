@@ -32,24 +32,6 @@ local waypoints = {}
 -- Format: { [team1] = allyTeam1, [team2] = allyTeam2, ... }
 local teamToAllyteam = {}
 
-local function GetDist2D(a, b)
-	local dx = a.x - b.x
-	local dz = a.z - b.z
-	return dx * dx + dz * dz
-end
-
-local function AddWaypoint(x, y, z)
-	local waypoint = { x = x, y = y, z = z, adj = {} }
-	waypoints[#waypoints+1] = waypoint
-	return waypoint
-end
-
-local function AddConnection(a, b)
-	local dist = GetDist2D(a, b)
-	a.adj[b] = dist
-	b.adj[a] = dist
-end
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
@@ -94,6 +76,24 @@ local function LoadFile(filename)
 		return nil
 	end
 	return chunk
+end
+
+local function GetDist2D(a, b)
+	local dx = a.x - b.x
+	local dz = a.z - b.z
+	return dx * dx + dz * dz
+end
+
+local function AddWaypoint(x, y, z)
+	local waypoint = { x = x, y = y, z = z, adj = {} }
+	waypoints[#waypoints+1] = waypoint
+	return waypoint
+end
+
+local function AddConnection(a, b)
+	local dist = GetDist2D(a, b)
+	a.adj[b] = dist
+	b.adj[a] = dist
 end
 
 -- load chunk
