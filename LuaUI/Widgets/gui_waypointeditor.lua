@@ -109,18 +109,17 @@ local function Save()
 	end
 	f:write("-- THIS IS A GENERATED FILE, DO NOT EDIT\n\n")
 	f:write("local w = AddWaypoint\nlocal c = AddConnection\n\n")
-	local prefix = "local "
+	f:write("local _ = {\n")
 	for i,waypoint in ipairs(waypoints) do
-		if i == 199 then prefix = "" end
-		f:write(prefix.."_"..i.." = w("..floor(waypoint[1])..", "..floor(waypoint[2])..", "..floor(waypoint[3])..")\n")
+		f:write("\tw("..floor(waypoint[1])..", "..floor(waypoint[2])..", "..floor(waypoint[3]).."),\n")
 		waypoint.index = i
 	end
-	f:write("\n")
+	f:write("}\n\n")
 	for _,conn in ipairs(Sort(connections, function(a, b)
 			if a[1].index < b[1].index then return true end
 			if a[1].index > b[1].index then return false end
 			return a[2].index < b[2].index end)) do
-		f:write("c(_"..conn[1].index..", _"..conn[2].index..")\n")
+		f:write("c(_["..conn[1].index.."], _["..conn[2].index.."])\n")
 	end
 	f:close()
 	Spring.Echo("Saved to: " .. fname)
