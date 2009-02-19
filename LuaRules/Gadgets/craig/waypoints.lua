@@ -10,13 +10,15 @@ Public interface:
 local WaypointMgr = CreateWaypointMgr()
 
 function WaypointMgr.GameFrame(f)
+function WaypointMgr.UnitCreated(unitID, unitDefID, unitTeam, builderID)
 ]]--
 
 function CreateWaypointMgr()
 
 -- constants
-local GAIA_TEAM_ID = Spring.GetGaiaTeamID()
-local WAYPOINT_RADIUS = 230 --taken to be same as flag radius
+local GAIA_TEAM_ID    = Spring.GetGaiaTeamID()
+local FLAG_RADIUS     = 230 --from S44 game_flagManager.lua
+local WAYPOINT_RADIUS = 230 --taken to be same as flag radius (for now?)
 local WAYPOINT_HEIGHT = 100
 
 -- speedups
@@ -24,6 +26,8 @@ local Log = Log
 local GetUnitsInBox = Spring.GetUnitsInBox
 local GetUnitsInCylinder = Spring.GetUnitsInCylinder
 local GetUnitDefID = Spring.GetUnitDefID
+local GetUnitPosition = Spring.GetUnitPosition
+local sqrt = math.sqrt
 
 -- class
 local WaypointMgr = {}
@@ -41,25 +45,7 @@ local teamToAllyteam = {}
 --  The call-in routines
 --
 
-local function FlagsCreated()
-	for _,p in ipairs(waypoints) do
-		-- Cylinder check because it's more natural then box
-		-- (used in GameFrame), and there are no gaia aircraft.
-		local units = GetUnitsInCylinder(p.x, p.z, WAYPOINT_RADIUS, GAIA_TEAM_ID)
-		for _,u in ipairs(units) do
-			local ud = GetUnitDefID(u)
-			if (UnitDefs[ud].name == "flag") then
-				Log("Flag found near ", p.x, ", ", p.z)
-				p.hasFlags = true
-			end
-		end
-	end
-end
-
 function WaypointMgr.GameFrame(f)
-	if (f == 128) then -- flags are created in frame 5
-		FlagsCreated()
-	end
 	-- TODO: what's faster, one GetUnitsInBox query for each team
 	-- or a single query and then counting units per allyeam team in LUA?
 	-- TODO: spread out update over multiple GameFrames?
@@ -74,6 +60,31 @@ function WaypointMgr.GameFrame(f)
 			allyTeamUnitCount[at] = (allyTeamUnitCount[at] or 0) + #units
 		end
 		p.allyTeamUnitCount = allyTeamUnitCount
+	end
+end
+
+--------------------------------------------------------------------------------
+--
+--  Unit call-ins
+--
+
+local function GetDist2D(x, z, p, q)
+	local dx = x - p
+	local dz = z - q
+	return sqrt(dx * dx + dz * dz)
+end
+
+function WaypointMgr.UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	if (UnitDefs[unitDefID].name == "flag") then
+		-- This is O(n*m), with n = number of flags and m = number of waypoints.
+		local x, y, z = GetUnitPosition(unitID)
+		for _,p in ipairs(waypoints) do
+			local dist = GetDist2D(x, z, p.x, p.z)
+			if (dist < FLAG_RADIUS) then
+				p.flags[#p.flags+1] = unitID
+				Log("Flag ", unitID, " is near ", p.x, ", ", p.z)
+			end
+		end
 	end
 end
 
@@ -99,20 +110,24 @@ local function LoadFile(filename)
 	return chunk
 end
 
-local function GetDist2D(a, b)
-	local dx = a.x - b.x
-	local dz = a.z - b.z
-	return dx * dx + dz * dz
-end
-
 local function AddWaypoint(x, y, z)
-	local waypoint = { x = x, y = y, z = z, adj = {} }
+	local waypoint = {
+		x = x, y = y, z = z, --position
+		adj = {},            --map of adjacent waypoints -> edge distance
+		flags = {},          --array of flag unitIDs
+	}
 	waypoints[#waypoints+1] = waypoint
 	return waypoint
 end
 
+local function GetWaypointDist2D(a, b)
+	local dx = a.x - b.x
+	local dz = a.z - b.z
+	return sqrt(dx * dx + dz * dz)
+end
+
 local function AddConnection(a, b)
-	local dist = GetDist2D(a, b)
+	local dist = GetWaypointDist2D(a, b)
 	a.adj[b] = dist
 	b.adj[a] = dist
 end

@@ -179,6 +179,9 @@ end
 --
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	if waypointMgr then
+		waypointMgr.UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	end
 	if team[unitTeam] then
 		team[unitTeam].UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
