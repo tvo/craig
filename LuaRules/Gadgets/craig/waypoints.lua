@@ -11,6 +11,10 @@ local WaypointMgr = CreateWaypointMgr()
 
 function WaypointMgr.GameFrame(f)
 function WaypointMgr.UnitCreated(unitID, unitDefID, unitTeam, builderID)
+
+function WaypointMgr.GetFrontline(myTeamID, myAllyTeamID)
+	Returns frontline, previous. Frontline is the set of waypoints adjacent
+
 ]]--
 
 function CreateWaypointMgr()
@@ -39,11 +43,150 @@ local waypoints = {}
 -- Format: { [team1] = allyTeam1, [team2] = allyTeam2, ... }
 local teamToAllyteam = {}
 
+-- caches result of CalculateFrontline..
+local frontlineCache = {}
+
+-- caches result of Spring.GetTeamStartPosition
+local teamStartPosition = {}
+
+
+local function GetDist2D(x, z, p, q)
+	local dx = x - p
+	local dz = z - q
+	return sqrt(dx * dx + dz * dz)
+end
+
+
+-- Returns the nearest waypoint to point x, z, and the distance to it.
+local function GetNearestWaypoint2D(x, z)
+	local minDist = 1.0e20
+	local nearest
+	for _,p in ipairs(waypoints) do
+		local dist = GetDist2D(x, z, p.x, p.z)
+		if (dist < minDist) then
+			minDist = dist
+			nearest = p
+		end
+	end
+	return nearest, minDist
+end
+
+
+-- This calculates the set of waypoints which are
+--  1) adjacent to waypoints possessed by an enemy, and
+--  2) not possessed by any (other) enemy, and
+--  3) reachable from hq, without going through enemy waypoints.
+local function CalculateFrontline(myTeamID, myAllyTeamID)
+	-- mark all waypoints adjacent to any enemy waypoints,
+	-- and create a set of all enemy waypoints in 'blocked'.
+	local marked = {}
+	local blocked = {}
+	for _,p in ipairs(waypoints) do
+		if ((p.owner or myAllyTeamID) ~= myAllyTeamID) then
+			blocked[p] = true
+			for a,_ in pairs(p.adj) do
+				if ((a.owner or myAllyTeamID) == myAllyTeamID) then
+					marked[a] = true
+				end
+			end
+		end
+	end
+
+	-- "perform a Dijkstra" starting at HQ
+	local hq = teamStartPosition[myTeamID]
+	local previous = PathFinder.Dijkstra(hq, blocked)
+
+	-- now 'frontline' is intersection between 'marked' and 'previous'
+	local frontline = {}
+	for p,_ in pairs(marked) do
+		frontline[p] = previous[p]
+	end
+
+	return frontline, previous
+end
+
+
+-- Called everytime a waypoint changes owner.
+-- A waypoint changes owner when compared to previous update,
+-- a different allyteam now possesses ALL units near the waypoint.
+local function WaypointOwnerChange(waypoint, newOwner)
+	local oldOwner = waypoint.owner
+	waypoint.owner = newOwner
+
+	if (oldOwner ~= nil) then
+		-- invalidate cache for oldOwner
+		for t,at in pairs(teamToAllyteam) do
+			if (at == oldOwner) then
+				frontlineCache[t] = nil
+			end
+		end
+	end
+
+	if (newOwner ~= nil) then
+		-- invalidate cache for newOwner
+		for t,at in pairs(teamToAllyteam) do
+			if (at == newOwner) then
+				frontlineCache[t] = nil
+			end
+		end
+	end
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--
+--  Waypoint prototype (Waypoint public interface)
+--  TODO: do I actually need this... ?
+--
+
+local Waypoint = {}
+Waypoint.__index = Waypoint
+
+function Waypoint:GetFriendlyUnitCount(myAllyTeamID)
+	return self.allyTeamUnitCount[myAllyTeamID] or 0
+end
+
+function Waypoint:GetEnemyUnitCount(myAllyTeamID)
+	local sum = 0
+	for at,count in pairs(self.allyTeamUnitCount) do
+		if (at ~= myAllyTeamID) then
+			sum = sum + count
+		end
+	end
+	return sum
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--
+--  WaypointMgr public interface
+--
+
+function WaypointMgr.GetFrontline(myTeamID, myAllyTeamID)
+	if (not frontlineCache[myTeamID]) then
+		frontlineCache[myTeamID] = { CalculateFrontline(myTeamID, myAllyTeamID) }
+	end
+	return unpack(frontlineCache[myTeamID])
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
 --  The call-in routines
 --
+
+function WaypointMgr.GameStart()
+	-- Can not run this in the initialization code at the end of this file,
+	-- because at that time Spring.GetTeamStartPosition seems to always return 0,0,0.
+	for _,t in ipairs(Spring.GetTeamList()) do
+		if (t ~= GAIA_TEAM_ID) then
+			local x, y, z = Spring.GetTeamStartPosition(t)
+			if x and x ~= 0 then
+				teamStartPosition[t] = GetNearestWaypoint2D(x, z)
+			end
+		end
+	end
+end
 
 function WaypointMgr.GameFrame(f)
 	-- TODO: what's faster, one GetUnitsInBox query for each team
@@ -59,7 +202,18 @@ function WaypointMgr.GameFrame(f)
 			local units = GetUnitsInBox(x1, y1, z1, x2, y2, z2, t)
 			allyTeamUnitCount[at] = (allyTeamUnitCount[at] or 0) + #units
 		end
+		local owner = nil
+		for at,count in pairs(allyTeamUnitCount) do
+			if (owner == nil) then
+				if (allyTeamUnitCount[at] > 0) then owner = at end
+			else
+				if (allyTeamUnitCount[at] > 0) then owner = "disputed" end
+			end
+		end
 		p.allyTeamUnitCount = allyTeamUnitCount
+		if (owner ~= "disputed") and (owner ~= p.owner) then
+			WaypointOwnerChange(p, owner)
+		end
 	end
 end
 
@@ -68,22 +222,14 @@ end
 --  Unit call-ins
 --
 
-local function GetDist2D(x, z, p, q)
-	local dx = x - p
-	local dz = z - q
-	return sqrt(dx * dx + dz * dz)
-end
-
 function WaypointMgr.UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if (UnitDefs[unitDefID].name == "flag") then
 		-- This is O(n*m), with n = number of flags and m = number of waypoints.
 		local x, y, z = GetUnitPosition(unitID)
-		for _,p in ipairs(waypoints) do
-			local dist = GetDist2D(x, z, p.x, p.z)
-			if (dist < FLAG_RADIUS) then
-				p.flags[#p.flags+1] = unitID
-				Log("Flag ", unitID, " is near ", p.x, ", ", p.z)
-			end
+		local p, dist = GetNearestWaypoint2D(x, z)
+		if (dist < FLAG_RADIUS) then
+			p.flags[#p.flags+1] = unitID
+			Log("Flag ", unitID, " is near ", p.x, ", ", p.z)
 		end
 	end
 end
@@ -115,7 +261,9 @@ local function AddWaypoint(x, y, z)
 		x = x, y = y, z = z, --position
 		adj = {},            --map of adjacent waypoints -> edge distance
 		flags = {},          --array of flag unitIDs
+		allyTeamUnitCount = {},
 	}
+	setmetatable(waypoint, Waypoint)
 	waypoints[#waypoints+1] = waypoint
 	return waypoint
 end
