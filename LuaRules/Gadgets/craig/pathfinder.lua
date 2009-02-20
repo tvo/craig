@@ -56,6 +56,7 @@ local function ExtractMin(dist, q)
 	-- TODO: this is the most naive implementation, bumping up the complexity
 	-- of Dijkstra below to O(n^2) with n = number of vertices in the graph.
 	-- http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
+	-- http://lua-users.org/lists/lua-l/2008-03/msg00534.html
 	for v,_ in pairs(q) do
 		if (dist[v] < minDist) then
 			minDist = dist[v]
