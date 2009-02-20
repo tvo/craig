@@ -77,7 +77,6 @@ function Team.GameStart()
 	-- Can not run this in the initialization code at the end of this file,
 	-- because at that time Spring.GetTeamStartPosition seems to always return 0,0,0.
 	for _,t in ipairs(Spring.GetTeamList()) do
-		--Log("considering team ", t)
 		if (t ~= GAIA_TEAM_ID) and (not Spring.AreTeamsAllied(myTeamID, t)) then
 			local x,y,z = Spring.GetTeamStartPosition(t)
 			if x and x ~= 0 then
