@@ -106,7 +106,7 @@ end
 
 function PathFinder.ReverseShortestPath(previous, target)
 	local path = {}
-	while (target ~= nil) do
+	while (previous[target] ~= nil) do
 		path[#path+1] = target
 		target = previous[target]
 	end
