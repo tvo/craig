@@ -134,6 +134,9 @@ end
 function gadget:GameStart()
 	-- This is executed AFTER headquarters / commander is spawned
 	Log("gadget:GameStart")
+	if waypointMgr then
+		waypointMgr.GameStart()
+	end
 	for _,t in pairs(team) do
 		t.GameStart()
 	end
@@ -142,10 +145,12 @@ end
 function gadget:GameFrame(f)
 	-- AI update
 	if f % 128 < .1 then
+		if waypointMgr then
+			waypointMgr.GameFrame(f)
+		end
 		for _,t in pairs(team) do
 			t.GameFrame(f)
 		end
-		if waypointMgr then waypointMgr.GameFrame(f) end
 	end
 end
 
