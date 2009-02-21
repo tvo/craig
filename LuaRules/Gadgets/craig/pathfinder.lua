@@ -132,7 +132,7 @@ end
 
 
 -- some test code (not a complete test!)
-if true then
+if false then
 	local function Connect(a, b, edge)
 		a.adj[b], b.adj[a] = edge, edge
 	end
