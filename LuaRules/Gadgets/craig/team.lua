@@ -48,6 +48,7 @@ local unitLimitsMgr = CreateUnitLimitsMgr(myTeamID)
 
 -- Combat management
 local waypointMgr = gadget.waypointMgr
+local lastWaypoint = 0
 
 local delayedCallQue = { first = 1, last = 0 }
 
@@ -137,6 +138,7 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 	-- queue unitBuildOrders if we have any for this unitDefID
 	if unitBuildOrder[unitDefID] then
 		DelayedCall(function()
+			if (not Spring.ValidUnitID(unitID)) then return end
 			-- factory or builder?
 			if (UnitDefs[unitDefID].TEDClass == "PLANT") then
 				-- If there are no enemies, don't bother lagging Spring to death:
@@ -147,6 +149,7 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 					-- Didn't use math.random() because it's really hard to establish
 					-- a 100% correct distribution when you don't know whether the
 					-- upper bound of the RNG is inclusive or exclusive.
+					--[[
 					enemyBaseLastAttacked = enemyBaseLastAttacked + 1
 					if enemyBaseLastAttacked > enemyBaseCount then
 						enemyBaseLastAttacked = 1
@@ -159,6 +162,7 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 						idx = idx + 1
 						if idx > enemyBaseCount then idx = 1 end
 					end
+					]]--
 				end
 				for _,bo in ipairs(unitBuildOrder[unitDefID]) do
 					Log("Queueing: ", UnitDefs[bo].humanName)
@@ -175,9 +179,15 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 	-- if it's a mobile unit, give it orders towards frontline
 	if UnitDefs[unitDefID].speed ~= 0 then
 		DelayedCall(function()
-			local front, previous = waypointMgr.GetFrontline(myTeamID, myAllyTeamID)
-			for p,_ in pairs(front) do
-				Spring.GiveOrderToUnit(unitID, CMD.MOVE, {p.x, p.y, p.z}, {"shift"})
+			if (not Spring.ValidUnitID(unitID)) then return end
+			local frontline, previous = waypointMgr.GetFrontline(myTeamID, myAllyTeamID)
+			lastWaypoint = lastWaypoint + 1
+			if (lastWaypoint > #frontline) then lastWaypoint = 1 end
+			local target = frontline[lastWaypoint]
+			if (target ~= nil) then
+				for _,p in PathFinder.PathIterator(previous, target) do
+					Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {p.x, p.y, p.z}, {"shift"})
+				end
 			end
 		end)
 	end
