@@ -59,7 +59,7 @@ include("LuaRules/Gadgets/craig/waypoints.lua")
 local CRAIG_Debug_Mode = 1 -- Must be 0 or 1
 
 local team = {}
-local waypointMgr
+waypointMgr = {} -- global
 
 local function ChangeAIDebugVerbosity(cmd,line,words,player)
 	local lvl = tonumber(words[1])
