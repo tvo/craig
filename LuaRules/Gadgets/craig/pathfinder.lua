@@ -146,12 +146,25 @@ if true then
 	blocked[b] = true
 
 	local previous = PathFinder.Dijkstra(graph, a, blocked)
+
+	print("'previous' set:")
 	for k,v in pairs(previous) do
-		print(k.name, v.name)
+		print(k.name, "->", v.name)
 	end
 
-	for _,p in PathFinder.PathIterator(previous, c) do
-		print(p.name)
+	print("reverse shortest path:")
+	for i,p in pairs(PathFinder.ReverseShortestPath(previous, c)) do
+		print(i, p.name)
+	end
+
+	print("shortest path:")
+	for i,p in pairs(PathFinder.ShortestPath(previous, c)) do
+		print(i, p.name)
+	end
+
+	print("shortest path, using iterator:")
+	for i,p in PathFinder.PathIterator(previous, c) do
+		print(i, p.name)
 	end
 end
 
