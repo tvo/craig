@@ -131,4 +131,28 @@ function PathFinder.PathIterator(previous, target)
 end
 
 
+-- some test code (not a complete test!)
+if true then
+	local function Connect(a, b, edge)
+		a.adj[b], b.adj[a] = edge, edge
+	end
+
+	local a, b, c = { name = "a", adj = {} }, { name = "b", adj = {} }, { name = "c", adj = {} }
+	local graph = {a, b, c}
+	Connect(a, b, 10)
+	Connect(b, c, 10)
+
+	local blocked = {}
+	blocked[b] = true
+
+	local previous = PathFinder.Dijkstra(graph, a, blocked)
+	for k,v in pairs(previous) do
+		print(k.name, v.name)
+	end
+
+	for _,p in PathFinder.PathIterator(previous, c) do
+		print(p.name)
+	end
+end
+
 return PathFinder
