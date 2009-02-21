@@ -207,11 +207,12 @@ function WaypointMgr.GameFrame(f)
 			allyTeamUnitCount[at] = (allyTeamUnitCount[at] or 0) + #units
 		end
 		local owner = nil
+		local numFlags = #p.flags
 		for at,count in pairs(allyTeamUnitCount) do
 			if (owner == nil) then
-				if (allyTeamUnitCount[at] > 0) then owner = at end
+				if (allyTeamUnitCount[at] > numFlags) then owner = at end
 			else
-				if (allyTeamUnitCount[at] > 0) then owner = "disputed" end
+				if (allyTeamUnitCount[at] > numFlags) then owner = "disputed" end
 			end
 		end
 		p.allyTeamUnitCount = allyTeamUnitCount
