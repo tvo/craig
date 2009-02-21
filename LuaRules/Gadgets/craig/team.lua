@@ -46,6 +46,9 @@ local unitBuildOrder = gadget.unitBuildOrder
 -- Unit limits
 local unitLimitsMgr = CreateUnitLimitsMgr(myTeamID)
 
+-- Combat management
+local waypointMgr = gadget.waypointMgr
+
 local delayedCallQue = { first = 1, last = 0 }
 
 local function DelayedCall(fun)
@@ -168,6 +171,16 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 	end
 
 	baseMgr.UnitFinished(unitID, unitDefID, unitTeam)
+
+	-- if it's a mobile unit, give it orders towards frontline
+	if UnitDefs[unitDefID].speed ~= 0 then
+		DelayedCall(function()
+			local front, previous = waypointMgr.GetFrontline(myTeamID, myAllyTeamID)
+			for p,_ in pairs(front) do
+				Spring.GiveOrderToUnit(unitID, CMD.MOVE, {p.x, p.y, p.z}, {"shift"})
+			end
+		end)
+	end
 end
 
 function Team.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
