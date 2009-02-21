@@ -9,6 +9,7 @@ Public interface:
 
 local WaypointMgr = CreateWaypointMgr()
 
+function WaypointMgr.GameStart()
 function WaypointMgr.GameFrame(f)
 function WaypointMgr.UnitCreated(unitID, unitDefID, unitTeam, builderID)
 
@@ -94,7 +95,7 @@ local function CalculateFrontline(myTeamID, myAllyTeamID)
 
 	-- "perform a Dijkstra" starting at HQ
 	local hq = teamStartPosition[myTeamID]
-	local previous = PathFinder.Dijkstra(hq, blocked)
+	local previous = PathFinder.Dijkstra(waypoints, hq, blocked)
 
 	-- now 'frontline' is intersection between 'marked' and 'previous'
 	local frontline = {}
@@ -112,6 +113,8 @@ end
 local function WaypointOwnerChange(waypoint, newOwner)
 	local oldOwner = waypoint.owner
 	waypoint.owner = newOwner
+
+	Log("WaypointOwnerChange", waypoint.x, ", ", waypoint.z, ": ", oldOwner, " -> ", newOwner)
 
 	if (oldOwner ~= nil) then
 		-- invalidate cache for oldOwner
