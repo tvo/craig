@@ -114,7 +114,7 @@ local function WaypointOwnerChange(waypoint, newOwner)
 	local oldOwner = waypoint.owner
 	waypoint.owner = newOwner
 
-	Log("WaypointOwnerChange", waypoint.x, ", ", waypoint.z, ": ",
+	Log("WaypointOwnerChange ", waypoint.x, ", ", waypoint.z, ": ",
 		(oldOwner or "neutral"), " -> ", (newOwner or "neutral"))
 
 	if (oldOwner ~= nil) then
