@@ -296,9 +296,9 @@ local function GetWaypointDist2D(a, b)
 end
 
 local function AddConnection(a, b)
-	local dist = GetWaypointDist2D(a, b)
-	a.adj[b] = dist
-	b.adj[a] = dist
+	local edge = {dist = GetWaypointDist2D(a, b)}
+	a.adj[b] = edge
+	b.adj[a] = edge
 end
 
 -- load chunk

@@ -92,8 +92,8 @@ function PathFinder.Dijkstra(graph, source, blocked)
 		end
 		q[u] = nil
 		for v,edge in pairs(u.adj) do
-			if (not blocked[v]) then
-				local alt = dist[u] + edge
+			if (not blocked[v]) and (not blocked[edge]) then
+				local alt = dist[u] + edge.dist
 				if (alt < dist[v]) then
 					dist[v] = alt
 					previous[v] = u
@@ -139,11 +139,12 @@ if false then
 
 	local a, b, c = { name = "a", adj = {} }, { name = "b", adj = {} }, { name = "c", adj = {} }
 	local graph = {a, b, c}
-	Connect(a, b, 10)
-	Connect(b, c, 10)
+	Connect(a, b, {dist = 10})
+	Connect(b, c, {dist = 10})
 
 	local blocked = {}
-	blocked[b] = true
+	--blocked[b] = true        -- block waypoint test
+	--blocked[b.adj[c]] = true -- block edge test
 
 	local previous = PathFinder.Dijkstra(graph, a, blocked)
 
