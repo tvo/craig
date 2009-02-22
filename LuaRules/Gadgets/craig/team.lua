@@ -28,6 +28,7 @@ do
 	end
 end
 local Log = Team.Log
+local DelayedCall = gadget.DelayedCall
 
 -- constants
 local GAIA_TEAM_ID = Spring.GetGaiaTeamID()
@@ -49,21 +50,6 @@ local unitLimitsMgr = CreateUnitLimitsMgr(myTeamID)
 -- Combat management
 local waypointMgr = gadget.waypointMgr
 local lastWaypoint = 0
-
-local delayedCallQue = { first = 1, last = 0 }
-
-local function DelayedCall(fun)
-	delayedCallQue.last = delayedCallQue.last + 1
-	delayedCallQue[delayedCallQue.last] = fun
-end
-
-local function PopDelayedCall()
-	local ret = delayedCallQue[delayedCallQue.first]
-	if ret then
-		delayedCallQue.first = delayedCallQue.first + 1
-	end
-	return ret
-end
 
 local function Refill(resource)
 	local value,storage = Spring.GetTeamResources(myTeamID, resource)
@@ -101,11 +87,6 @@ function Team.GameFrame(f)
 	Refill("metal")
 	Refill("energy")
 
-	while true do
-		local fun = PopDelayedCall()
-		if fun then fun() else break end
-	end
-
 	baseMgr.GameFrame(f)
 end
 
@@ -137,8 +118,7 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 
 	-- queue unitBuildOrders if we have any for this unitDefID
 	if unitBuildOrder[unitDefID] then
-		DelayedCall(function()
-			if (not Spring.ValidUnitID(unitID)) then return end
+		DelayedCall(unitID, function()
 			-- factory or builder?
 			if (UnitDefs[unitDefID].TEDClass == "PLANT") then
 				-- If there are no enemies, don't bother lagging Spring to death:
@@ -178,8 +158,7 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 
 	-- if it's a mobile unit, give it orders towards frontline
 	if UnitDefs[unitDefID].speed ~= 0 then
-		DelayedCall(function()
-			if (not Spring.ValidUnitID(unitID)) then return end
+		DelayedCall(unitID, function()
 			local frontline, previous = waypointMgr.GetFrontline(myTeamID, myAllyTeamID)
 			lastWaypoint = lastWaypoint + 1
 			if (lastWaypoint > #frontline) then lastWaypoint = 1 end
