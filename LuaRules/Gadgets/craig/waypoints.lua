@@ -36,6 +36,7 @@ local Log = Log
 local GetUnitsInBox = Spring.GetUnitsInBox
 local GetUnitsInCylinder = Spring.GetUnitsInCylinder
 local GetUnitDefID = Spring.GetUnitDefID
+local GetUnitTeam = Spring.GetUnitTeam
 local GetUnitAllyTeam = Spring.GetUnitAllyTeam
 local GetUnitPosition = Spring.GetUnitPosition
 local sqrt = math.sqrt
@@ -180,6 +181,15 @@ function Waypoint:GetEnemyUnitCount(myAllyTeamID)
 		end
 	end
 	return sum
+end
+
+function Waypoint:AreAllFlagsCappedByTeam(myTeamID)
+	for _,f in pairs(self.flags) do
+		if (GetUnitTeam(f) ~= myTeamID) then
+			return false
+		end
+	end
+	return true
 end
 
 --------------------------------------------------------------------------------

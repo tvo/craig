@@ -41,13 +41,14 @@ local unitCount = 0
 
 local function SendToNearestWaypointWithUncappedFlags(unitID)
 	local previous, target = PathFinder.Dijkstra(waypoints, units[unitID], {}, function(u)
-		return (u.owner ~= myAllyTeamID) and (#u.flags > 0)
+		return (not u:AreAllFlagsCappedByTeam(myTeamID)) and (#u.flags > 0)
 	end)
 	if target then
 		units[unitID] = target --assume next call this unit will be at target
 		for _,p in PathFinder.PathIterator(previous, target) do
 			Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {p.x, p.y, p.z}, {"shift"})
 		end
+	else
 	end
 end
 
@@ -59,14 +60,7 @@ end
 
 function FlagsMgr.GameFrame(f)
 	for u,p in pairs(units) do
-		local allcapped = true
-		for _,f in pairs(p.flags) do
-			if (GetUnitTeam(f) ~= myTeamID) then
-				allcapped = false
-				break
-			end
-		end
-		if allcapped then
+		if p:AreAllFlagsCappedByTeam(myTeamID) then
 			Log("All flags capped near: ", p.x, ", ", p.z)
 			SendToNearestWaypointWithUncappedFlags(u)
 		end
