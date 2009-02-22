@@ -160,6 +160,11 @@ function BaseMgr.UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 function BaseMgr.UnitFinished(unitID, unitDefID, unitTeam)
+	if (unitDefID == currentBuildDefID) and ((not currentBuildID) or (unitID == currentBuildID)) then
+		Log("CurrentBuild finished")
+		BuildBaseFinished()
+	end
+
 	-- update base building
 	if baseBuilders[unitDefID] then
 		-- keep track of all builders we've walking around
@@ -171,11 +176,7 @@ function BaseMgr.UnitFinished(unitID, unitDefID, unitTeam)
 				baseBuildOptions[bo] = unitDefID
 			end
 		end
-	end
-
-	if (unitDefID == currentBuildDefID) and ((not currentBuildID) or (unitID == currentBuildID)) then
-		Log("CurrentBuild finished")
-		BuildBaseFinished()
+		return true --signal Team.UnitFinished that we will control this unit
 	end
 end
 
