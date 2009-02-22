@@ -104,7 +104,9 @@ local function CalculateFrontline(myTeamID, myAllyTeamID)
 	-- now 'frontline' is intersection between 'marked' and 'previous'
 	local frontline = {}
 	for p,_ in pairs(marked) do
-		frontline[#frontline+1] = p
+		if previous[p] then
+			frontline[#frontline+1] = p
+		end
 	end
 
 	return frontline, previous
