@@ -72,14 +72,8 @@ local function BuildBase()
 	local unitDefID
 	local newIndex = baseBuildIndex
 	repeat
-		newIndex = newIndex + 1
+		newIndex = (newIndex % #baseBuildOrder) + 1
 		unitDefID = baseBuildOrder[newIndex]
-		-- restart queue when finished
-		if not unitDefID then
-			newIndex = 1
-			unitDefID = baseBuildOrder[1]
-			Log("Restarted baseBuildOrder, next item: ", UnitDefs[unitDefID].humanName)
-		end
 	until (newIndex == baseBuildIndex) or
 		-- check if Spring would block this build (unit restriction)
 		((Spring.GetTeamUnitDefCount(myTeamID, unitDefID) or 0) < UnitDefs[unitDefID].maxThisUnit and
