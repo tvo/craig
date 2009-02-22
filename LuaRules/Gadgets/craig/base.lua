@@ -93,6 +93,7 @@ local function BuildBase()
 		local _,_,inBuild = Spring.GetUnitIsStunned(u)
 		if not inBuild then builderID = u break end
 	end
+	builderID = (builderID or builders[1])
 	if not builderID then Log("internal error: Spring.GetTeamUnitsByDefs returned empty array") return end
 
 	-- give the order to the builder, iff we can find a buildsite
@@ -175,6 +176,12 @@ function BaseMgr.UnitFinished(unitID, unitDefID, unitTeam)
 				Log("Base can now build ", UnitDefs[bo].humanName)
 				baseBuildOptions[bo] = unitDefID
 			end
+		end
+		-- give the builder a guard order on current builder
+		if currentBuilder then
+			DelayedCall(unitID, function()
+				Spring.GiveOrderToUnit(unitID, CMD.GUARD, {currentBuilder}, {})
+			end)
 		end
 		return true --signal Team.UnitFinished that we will control this unit
 	end
