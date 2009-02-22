@@ -218,5 +218,8 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 end
 
 -- This may be called by engine from inside Spring.GiveOrderToUnit (e.g. if unit limit is reached)
---function gadget:UnitIdle(unitID, unitDefID, unitTeam)
---end
+function gadget:UnitIdle(unitID, unitDefID, unitTeam)
+	if team[unitTeam] then
+		team[unitTeam].UnitIdle(unitID, unitDefID, unitTeam)
+	end
+end

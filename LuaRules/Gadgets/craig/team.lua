@@ -211,6 +211,10 @@ function Team.UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	end
 end
 
+function Team.UnitIdle(unitID, unitDefID, unitTeam)
+	Log("UnitIdle: ", UnitDefs[unitDefID].humanName)
+end
+
 --------------------------------------------------------------------------------
 --
 --  Initialization
