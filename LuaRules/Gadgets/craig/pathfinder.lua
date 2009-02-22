@@ -148,14 +148,8 @@ end
 --
 
 function PathFinder.GiveOrdersToUnit(previous, target, unitID, cmd)
-	local first = true
 	for _,p in PathFinder.PathIterator(previous, target) do
-		if first then
-			first = false
-			Spring.GiveOrderToUnit(unitID, cmd, {p.x, p.y, p.z}, {})
-		else
-			Spring.GiveOrderToUnit(unitID, cmd, {p.x, p.y, p.z}, {"shift"})
-		end
+		Spring.GiveOrderToUnit(unitID, cmd, {p.x, p.y, p.z}, {"shift"})
 	end
 end
 
