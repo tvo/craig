@@ -89,10 +89,20 @@ local function CalculateFrontline(myTeamID, myAllyTeamID)
 	for _,p in ipairs(waypoints) do
 		if ((p.owner or myAllyTeamID) ~= myAllyTeamID) then
 			blocked[p] = true
-			for a,_ in pairs(p.adj) do
+			for a,edge in pairs(p.adj) do
 				if ((a.owner or myAllyTeamID) == myAllyTeamID) then
 					marked[a] = true
 				end
+			end
+		end
+	end
+
+	-- block all edges which connect two frontline waypoints
+	-- (ie. prevent units from pathing over the frontline..)
+	for p,_ in pairs(marked) do
+		for a,edge in pairs(p.adj) do
+			if marked[a] then
+				blocked[edge] = true
 			end
 		end
 	end
