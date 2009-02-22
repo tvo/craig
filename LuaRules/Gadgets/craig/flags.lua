@@ -7,7 +7,9 @@ interface methods.  Private data is stored in the function's closure.
 
 Public interface:
 
-
+function FlagsMgr.GameFrame(f)
+function FlagsMgr.UnitFinished(unitID, unitDefID, unitTeam)
+function FlagsMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 ]]--
 
 function CreateFlagsMgr(myTeamID, myAllyTeamID, Log)
