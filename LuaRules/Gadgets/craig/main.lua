@@ -61,6 +61,7 @@ local delayedCalls = {}
 
 local team = {}
 waypointMgr = {} -- global
+waypointMgrGameFrameRate = 0
 
 --------------------------------------------------------------------------------
 
@@ -137,6 +138,7 @@ function gadget:GamePreload()
 	Log("gadget:GamePreload")
 	-- Intialise waypoint manager
 	waypointMgr = CreateWaypointMgr()
+	waypointMgrGameFrameRate = waypointMgr.GetGameFrameRate()
 	-- Initialise AI for all team that are set to use it
 	for _,t in ipairs(Spring.GetTeamList()) do
 		if Spring.GetTeamLuaAI(t) == gadget:GetInfo().name then
@@ -164,11 +166,13 @@ function gadget:GameFrame(f)
 		delayedCalls[u] = nil
 	end
 
+	-- waypointMgr update
+	if waypointMgr and f % waypointMgrGameFrameRate < .1 then
+		waypointMgr.GameFrame(f)
+	end
+
 	-- AI update
 	if f % 128 < .1 then
-		if waypointMgr then
-			waypointMgr.GameFrame(f)
-		end
 		for _,t in pairs(team) do
 			t.GameFrame(f)
 		end

@@ -13,6 +13,7 @@ function WaypointMgr.GameStart()
 function WaypointMgr.GameFrame(f)
 function WaypointMgr.UnitCreated(unitID, unitDefID, unitTeam, builderID)
 
+function WaypointMgr.GetGameFrameRate()
 function WaypointMgr.GetFrontline(myTeamID, myAllyTeamID)
 	Returns frontline, previous. Frontline is the set of waypoints adjacent
 
@@ -22,6 +23,7 @@ function CreateWaypointMgr()
 
 -- constants
 local GAIA_TEAM_ID    = Spring.GetGaiaTeamID()
+local GAIA_ALLYTEAM_ID      -- initialized later on..
 local FLAG_RADIUS     = 230 --from S44 game_flagManager.lua
 local WAYPOINT_RADIUS = 230 --taken to be same as flag radius (for now?)
 local WAYPOINT_HEIGHT = 100
@@ -31,6 +33,7 @@ local Log = Log
 local GetUnitsInBox = Spring.GetUnitsInBox
 local GetUnitsInCylinder = Spring.GetUnitsInCylinder
 local GetUnitDefID = Spring.GetUnitDefID
+local GetUnitAllyTeam = Spring.GetUnitAllyTeam
 local GetUnitPosition = Spring.GetUnitPosition
 local sqrt = math.sqrt
 
@@ -40,6 +43,7 @@ local WaypointMgr = {}
 -- Array containing the waypoints and adjacency relations
 -- Format: { { x = x, y = y, z = z, adj = {}, --[[ more properties ]]-- }, ... }
 local waypoints = {}
+local index = 0      -- where we are with updating waypoints
 
 -- Format: { [team1] = allyTeam1, [team2] = allyTeam2, ... }
 local teamToAllyteam = {}
@@ -166,6 +170,12 @@ end
 --  WaypointMgr public interface
 --
 
+function WaypointMgr.GetGameFrameRate()
+	-- returns every how many frames GameFrame should be called.
+	-- currently I set this so each waypoint is updated every 30 sec (= 900 frames)
+	return math.floor(900 / #waypoints)
+end
+
 function WaypointMgr.GetFrontline(myTeamID, myAllyTeamID)
 	if (not frontlineCache[myTeamID]) then
 		frontlineCache[myTeamID] = { CalculateFrontline(myTeamID, myAllyTeamID) }
@@ -193,32 +203,36 @@ function WaypointMgr.GameStart()
 end
 
 function WaypointMgr.GameFrame(f)
-	-- TODO: what's faster, one GetUnitsInBox query for each team
-	-- or a single query and then counting units per allyeam team in LUA?
-	-- TODO: spread out update over multiple GameFrames?
-	for _,p in ipairs(waypoints) do
-		-- Box check (as opposed to Rectangle, Sphere, Cylinder),
-		-- because this allows us to easily exclude aircraft.
-		local x1, y1, z1 = p.x - WAYPOINT_RADIUS, p.y - WAYPOINT_HEIGHT, p.z - WAYPOINT_RADIUS
-		local x2, y2, z2 = p.x + WAYPOINT_RADIUS, p.y + WAYPOINT_HEIGHT, p.z + WAYPOINT_RADIUS
-		local allyTeamUnitCount = {}
-		for t,at in pairs(teamToAllyteam) do
-			local units = GetUnitsInBox(x1, y1, z1, x2, y2, z2, t)
-			allyTeamUnitCount[at] = (allyTeamUnitCount[at] or 0) + #units
+	index = (index % #waypoints) + 1
+	--Log("WaypointMgr: updating waypoint ", index)
+	local p = waypoints[index]
+
+	-- Update p.allyTeamUnitCount
+	-- Box check (as opposed to Rectangle, Sphere, Cylinder),
+	-- because this allows us to easily exclude aircraft.
+	local x1, y1, z1 = p.x - WAYPOINT_RADIUS, p.y - WAYPOINT_HEIGHT, p.z - WAYPOINT_RADIUS
+	local x2, y2, z2 = p.x + WAYPOINT_RADIUS, p.y + WAYPOINT_HEIGHT, p.z + WAYPOINT_RADIUS
+	local allyTeamUnitCount = {}
+	for _,u in ipairs(GetUnitsInBox(x1, y1, z1, x2, y2, z2)) do
+		local ud = GetUnitDefID(u)
+		local at = GetUnitAllyTeam(u)
+		if (UnitDefs[ud].speed == 0) and (at ~= GAIA_ALLYTEAM_ID) then
+			allyTeamUnitCount[at] = (allyTeamUnitCount[at] or 0) + 1
 		end
-		local owner = nil
-		local numFlags = #p.flags
-		for at,count in pairs(allyTeamUnitCount) do
-			if (owner == nil) then
-				if (allyTeamUnitCount[at] > numFlags) then owner = at end
-			else
-				if (allyTeamUnitCount[at] > numFlags) then owner = "disputed" end
-			end
+	end
+	p.allyTeamUnitCount = allyTeamUnitCount
+
+	-- Update p.owner
+	local owner = nil
+	for at,count in pairs(allyTeamUnitCount) do
+		if (owner == nil) then
+			if (allyTeamUnitCount[at] > 0) then owner = at end
+		else
+			if (allyTeamUnitCount[at] > 0) then owner = p.owner break end
 		end
-		p.allyTeamUnitCount = allyTeamUnitCount
-		if (owner ~= "disputed") and (owner ~= p.owner) then
-			WaypointOwnerChange(p, owner)
-		end
+	end
+	if (owner ~= p.owner) then
+		WaypointOwnerChange(p, owner)
 	end
 end
 
@@ -305,6 +319,10 @@ for _,t in ipairs(Spring.GetTeamList()) do
 		teamToAllyteam[t] = at
 	end
 end
+
+-- find GAIA_ALLYTEAM_ID
+local _,_,_,_,_,at = Spring.GetTeamInfo(GAIA_TEAM_ID)
+GAIA_ALLYTEAM_ID = at
 
 end
 return WaypointMgr
