@@ -26,7 +26,6 @@ local MINIMUM_FLAG_CAP_RATE = 1  --only units with flagcaprate at least this hig
 local RESERVED_FLAG_CAPPERS = 12 --number of units claimed by this module
 
 -- speedups
-local Log = gadget.Log
 local DelayedCall = gadget.DelayedCall
 local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitTeam = Spring.GetUnitTeam

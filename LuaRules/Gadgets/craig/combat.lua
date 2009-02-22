@@ -22,10 +22,7 @@ end
 local CombatMgr = {}
 
 -- speedups
-local Log = gadget.Log
 local DelayedCall = gadget.DelayedCall
-local GetUnitPosition = Spring.GetUnitPosition
-local GetUnitTeam = Spring.GetUnitTeam
 
 local waypointMgr = gadget.waypointMgr
 local waypoints = waypointMgr.GetWaypoints()
@@ -33,6 +30,7 @@ local flags = waypointMgr.GetFlags()
 
 -- members
 local lastWaypoint = 0
+local units = {}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -41,6 +39,31 @@ local lastWaypoint = 0
 --
 
 function CombatMgr.GameFrame(f)
+	-- one wave every 5 minutes only
+	if f % 9000 >= 128 then return end
+
+	Log("GO GO GO")
+
+	-- make temporary data structure of squads (units at or moving towards same waypoint)
+	local squads = {} -- waypoint -> array of unitIDs
+	for u,p in pairs(units) do
+		local squad = (squads[p] or {})
+		squad[#squad+1] = u
+		squads[p] = squad
+	end
+
+	-- give each orders towards the nearest enemy waypoint
+	for p,unitArray in pairs(squads) do
+		local previous, target = PathFinder.Dijkstra(waypoints, p, {}, function(p)
+			return ((p.owner or myAllyTeamID) ~= myAllyTeamID)
+		end)
+		if target then
+			for _,u in ipairs(unitArray) do
+				units[u] = target --assume next call this unit will be at target
+				PathFinder.GiveOrdersToUnit(previous, target, u, CMD.FIGHT)
+			end
+		end
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -56,6 +79,7 @@ function CombatMgr.UnitFinished(unitID, unitDefID, unitTeam)
 			lastWaypoint = (lastWaypoint % #frontline) + 1
 			local target = frontline[lastWaypoint]
 			if (target ~= nil) then
+				units[unitID] = target -- remember where we are going for UnitIdle
 				PathFinder.GiveOrdersToUnit(previous, target, unitID, CMD.FIGHT)
 			end
 		end)
@@ -65,6 +89,7 @@ function CombatMgr.UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function CombatMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	units[unitID] = nil
 end
 
 --------------------------------------------------------------------------------
