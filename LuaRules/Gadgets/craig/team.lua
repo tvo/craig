@@ -50,6 +50,7 @@ local unitLimitsMgr = CreateUnitLimitsMgr(myTeamID)
 -- Combat management
 local waypointMgr = gadget.waypointMgr
 local lastWaypoint = 0
+local combatMgr = CreateCombatMgr(myTeamID, myAllyTeamID, Log)
 
 -- Flag capping
 local flagsMgr = CreateFlagsMgr(myTeamID, myAllyTeamID, Log)
@@ -92,6 +93,7 @@ function Team.GameFrame(f)
 
 	baseMgr.GameFrame(f)
 	flagsMgr.GameFrame(f)
+	combatMgr.GameFrame(f)
 end
 
 --------------------------------------------------------------------------------
@@ -158,23 +160,11 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 		end)
 	end
 
-	baseMgr.UnitFinished(unitID, unitDefID, unitTeam)
-
-	-- if flagsMgr takes care of the unit, return
+	-- if any unit manager takes care of the unit, return
+	-- managers are in order of preference
+	if baseMgr.UnitFinished(unitID, unitDefID, unitTeam) then return end
 	if flagsMgr.UnitFinished(unitID, unitDefID, unitTeam) then return end
-
-	-- if it's a mobile unit, give it orders towards frontline
-	if waypointMgr and UnitDefs[unitDefID].speed ~= 0 then
-		DelayedCall(unitID, function()
-			local frontline, previous = waypointMgr.GetFrontline(myTeamID, myAllyTeamID)
-			lastWaypoint = lastWaypoint + 1
-			if (lastWaypoint > #frontline) then lastWaypoint = 1 end
-			local target = frontline[lastWaypoint]
-			if (target ~= nil) then
-				PathFinder.GiveOrdersToUnit(previous, target, unitID, CMD.FIGHT)
-			end
-		end)
-	end
+	if combatMgr.UnitFinished(unitID, unitDefID, unitTeam) then return end
 end
 
 function Team.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
@@ -182,6 +172,7 @@ function Team.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDef
 
 	baseMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	flagsMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	combatMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 end
 
 function Team.UnitTaken(unitID, unitDefID, unitTeam, newTeam)
