@@ -82,7 +82,7 @@ function Team.GameStart()
 end
 
 function Team.GameFrame(f)
-	Log("GameFrame")
+	--Log("GameFrame")
 
 	Refill("metal")
 	Refill("energy")
@@ -129,20 +129,20 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 					-- Didn't use math.random() because it's really hard to establish
 					-- a 100% correct distribution when you don't know whether the
 					-- upper bound of the RNG is inclusive or exclusive.
-					--[[
-					enemyBaseLastAttacked = enemyBaseLastAttacked + 1
-					if enemyBaseLastAttacked > enemyBaseCount then
-						enemyBaseLastAttacked = 1
+					if (not waypointMgr) then
+						enemyBaseLastAttacked = enemyBaseLastAttacked + 1
+						if enemyBaseLastAttacked > enemyBaseCount then
+							enemyBaseLastAttacked = 1
+						end
+						-- queue up a bunch of fight orders towards all enemies
+						local idx = enemyBaseLastAttacked
+						for i=1,enemyBaseCount do
+							-- enemyBases[] is in the right format to pass into GiveOrderToUnit...
+							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, enemyBases[idx], {"shift"})
+							idx = idx + 1
+							if idx > enemyBaseCount then idx = 1 end
+						end
 					end
-					-- queue up a bunch of fight orders towards all enemies
-					local idx = enemyBaseLastAttacked
-					for i=1,enemyBaseCount do
-						-- enemyBases[] is in the right format to pass into GiveOrderToUnit...
-						Spring.GiveOrderToUnit(unitID, CMD.FIGHT, enemyBases[idx], {"shift"})
-						idx = idx + 1
-						if idx > enemyBaseCount then idx = 1 end
-					end
-					]]--
 				end
 				for _,bo in ipairs(unitBuildOrder[unitDefID]) do
 					Log("Queueing: ", UnitDefs[bo].humanName)
@@ -157,7 +157,7 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 	baseMgr.UnitFinished(unitID, unitDefID, unitTeam)
 
 	-- if it's a mobile unit, give it orders towards frontline
-	if UnitDefs[unitDefID].speed ~= 0 then
+	if waypointMgr and UnitDefs[unitDefID].speed ~= 0 then
 		DelayedCall(unitID, function()
 			local frontline, previous = waypointMgr.GetFrontline(myTeamID, myAllyTeamID)
 			lastWaypoint = lastWaypoint + 1

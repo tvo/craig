@@ -315,7 +315,7 @@ end
 local chunk = LoadFile("LuaRules/Configs/craig/maps/" .. Game.mapName .. ".lua")
 if (chunk == nil) then
 	Warning("No waypoint profile found. Will not use waypoints on this map.")
-	return nil
+	return false
 end
 
 -- execute chunk
