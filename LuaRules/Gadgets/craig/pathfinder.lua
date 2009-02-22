@@ -25,6 +25,10 @@ function PathFinder.PathIterator(previous, target)
 	Equivalent to ipairs(ShortestPath(previous, target)), but less allocations.
 	Usage: 'for index, vertex in PathIterator(Dijkstra(graph, source), target)'
 
+function PathFinder.GiveOrdersToUnit(previous, target, unitID, cmd)
+	Queues up cmds from the source which was used to generate 'previous' to
+	target for the given unit.
+
 The Dijkstra and ShortestPath functions have been separated because Dijkstra
 generates the shortest path from source to all vertices in the graph at once.
 ]]--
@@ -137,6 +141,26 @@ function PathFinder.PathIterator(previous, target)
 	return rev_iter, t, 1 + #t
 end
 
+
+--------------------------------------------------------------------------------
+--
+--  Spring specific functions
+--
+
+function PathFinder.GiveOrdersToUnit(previous, target, unitID, cmd)
+	local first = true
+	for _,p in PathFinder.PathIterator(previous, target) do
+		if first then
+			first = false
+			Spring.GiveOrderToUnit(unitID, cmd, {p.x, p.y, p.z}, {})
+		else
+			Spring.GiveOrderToUnit(unitID, cmd, {p.x, p.y, p.z}, {"shift"})
+		end
+	end
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 -- some test code (not a complete test!)
 if false then

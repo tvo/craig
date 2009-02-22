@@ -45,10 +45,7 @@ local function SendToNearestWaypointWithUncappedFlags(unitID)
 	end)
 	if target then
 		units[unitID] = target --assume next call this unit will be at target
-		for _,p in PathFinder.PathIterator(previous, target) do
-			Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {p.x, p.y, p.z}, {"shift"})
-		end
-	else
+		PathFinder.GiveOrdersToUnit(previous, target, unitID, CMD.FIGHT)
 	end
 end
 

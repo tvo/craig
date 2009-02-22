@@ -171,9 +171,7 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 			if (lastWaypoint > #frontline) then lastWaypoint = 1 end
 			local target = frontline[lastWaypoint]
 			if (target ~= nil) then
-				for _,p in PathFinder.PathIterator(previous, target) do
-					Spring.GiveOrderToUnit(unitID, CMD.FIGHT, {p.x, p.y, p.z}, {"shift"})
-				end
+				PathFinder.GiveOrdersToUnit(previous, target, unitID, CMD.FIGHT)
 			end
 		end)
 	end
