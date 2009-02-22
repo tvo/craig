@@ -4,10 +4,14 @@
 --[[
 Public interface:
 
-function PathFinder.Dijkstra(graph, source, blocked)
+function PathFinder.Dijkstra(graph, source, blocked, predicate))
 	Returns a dictionary which gives for each vertex the previous vertex
 	in a shortest path from source to that vertex, never moving over vertices
 	in the blocked set.
+	If predicate is given, it calls this function for every vertex u that is
+	going to be processed.  If it returns anything evaluating to true Dijkstra
+	will immediately return previous, u.  (This can be used to search for
+	nearest waypoint for which a certain condition holds.)
 
 function PathFinder.ReverseShortestPath(previous, target)
 	Builds an array containing all vertices on the path from target to source.
@@ -67,7 +71,7 @@ local function ExtractMin(dist, q)
 end
 
 
-function PathFinder.Dijkstra(graph, source, blocked)
+function PathFinder.Dijkstra(graph, source, blocked, predicate)
 	local previous = {} -- maps waypoint to previous waypoint on shortest path
 	local dist = {}     -- maps waypoint to shortest distance to it
 	local q = {}        -- set of all waypoints which still need to be processed
@@ -89,6 +93,9 @@ function PathFinder.Dijkstra(graph, source, blocked)
 		local u = ExtractMin(dist, q)
 		if (u == nil) then
 			return previous
+		end
+		if (predicate ~= nil) and predicate(u) then
+			return previous, u
 		end
 		q[u] = nil
 		for v,edge in pairs(u.adj) do

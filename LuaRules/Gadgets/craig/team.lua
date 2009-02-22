@@ -51,6 +51,9 @@ local unitLimitsMgr = CreateUnitLimitsMgr(myTeamID)
 local waypointMgr = gadget.waypointMgr
 local lastWaypoint = 0
 
+-- Flag capping
+local flagsMgr = CreateFlagsMgr(myTeamID, myAllyTeamID, Log)
+
 local function Refill(resource)
 	local value,storage = Spring.GetTeamResources(myTeamID, resource)
 	Spring.AddTeamResource(myTeamID, resource, storage - value)
@@ -88,6 +91,7 @@ function Team.GameFrame(f)
 	Refill("energy")
 
 	baseMgr.GameFrame(f)
+	flagsMgr.GameFrame(f)
 end
 
 --------------------------------------------------------------------------------
@@ -156,6 +160,9 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 
 	baseMgr.UnitFinished(unitID, unitDefID, unitTeam)
 
+	-- if flagsMgr takes care of the unit, return
+	if flagsMgr.UnitFinished(unitID, unitDefID, unitTeam) then return end
+
 	-- if it's a mobile unit, give it orders towards frontline
 	if waypointMgr and UnitDefs[unitDefID].speed ~= 0 then
 		DelayedCall(unitID, function()
@@ -176,6 +183,7 @@ function Team.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDef
 	Log("UnitDestroyed: ", UnitDefs[unitDefID].humanName)
 
 	baseMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	flagsMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 end
 
 function Team.UnitTaken(unitID, unitDefID, unitTeam, newTeam)

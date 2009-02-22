@@ -14,6 +14,9 @@ function WaypointMgr.GameFrame(f)
 function WaypointMgr.UnitCreated(unitID, unitDefID, unitTeam, builderID)
 
 function WaypointMgr.GetGameFrameRate()
+function WaypointMgr.GetWaypoints()
+function WaypointMgr.GetFlags()
+function WaypointMgr.GetTeamStartPosition(myTeamID)
 function WaypointMgr.GetFrontline(myTeamID, myAllyTeamID)
 	Returns frontline, previous. Frontline is the set of waypoints adjacent
 
@@ -44,6 +47,9 @@ local WaypointMgr = {}
 -- Format: { { x = x, y = y, z = z, adj = {}, --[[ more properties ]]-- }, ... }
 local waypoints = {}
 local index = 0      -- where we are with updating waypoints
+
+-- Dictionary mapping unitID of flag to waypoint it is in.
+local flags = {}
 
 -- Format: { [team1] = allyTeam1, [team2] = allyTeam2, ... }
 local teamToAllyteam = {}
@@ -188,6 +194,18 @@ function WaypointMgr.GetGameFrameRate()
 	return math.floor(900 / #waypoints)
 end
 
+function WaypointMgr.GetWaypoints()
+	return waypoints
+end
+
+function WaypointMgr.GetFlags()
+	return flags
+end
+
+function WaypointMgr.GetTeamStartPosition(myTeamID)
+	return teamStartPosition[myTeamID]
+end
+
 function WaypointMgr.GetFrontline(myTeamID, myAllyTeamID)
 	if (not frontlineCache[myTeamID]) then
 		frontlineCache[myTeamID] = { CalculateFrontline(myTeamID, myAllyTeamID) }
@@ -260,6 +278,7 @@ function WaypointMgr.UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		local p, dist = GetNearestWaypoint2D(x, z)
 		if (dist < FLAG_RADIUS) then
 			p.flags[#p.flags+1] = unitID
+			flags[unitID] = p
 			Log("Flag ", unitID, " is near ", p.x, ", ", p.z)
 		end
 	end
