@@ -65,7 +65,7 @@ local function Refill(resource)
 			-- medium: partial refill
 			-- 1000 storage / 128 * 30 = approx. +234
 			-- this means 100% cheat is bonus of +234 metal at 1k storage
-			Spring.AddTeamResource(myTeamID, resource, (storage - value) * 0.05)
+			Spring.AddTeamResource(myTeamID, resource, (storage - value) * 0.06)
 		end
 	end
 end
