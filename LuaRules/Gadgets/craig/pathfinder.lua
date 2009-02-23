@@ -25,7 +25,7 @@ function PathFinder.PathIterator(previous, target)
 	Equivalent to ipairs(ShortestPath(previous, target)), but less allocations.
 	Usage: 'for index, vertex in PathIterator(Dijkstra(graph, source), target)'
 
-function PathFinder.GiveOrdersToUnit(previous, target, unitID, cmd)
+function PathFinder.GiveOrdersToUnit(previous, target, unitID, cmd, spread)
 	Queues up cmds from the source which was used to generate 'previous' to
 	target for the given unit.
 
@@ -147,9 +147,21 @@ end
 --  Spring specific functions
 --
 
-function PathFinder.GiveOrdersToUnit(previous, target, unitID, cmd)
-	for _,p in PathFinder.PathIterator(previous, target) do
-		Spring.GiveOrderToUnit(unitID, cmd, {p.x, p.y, p.z}, {"shift"})
+--speedups
+local options = {"shift"}
+
+
+function PathFinder.GiveOrdersToUnit(previous, target, unitID, cmd, spread)
+	if spread then
+		local dx = math.random() * spread * 2 - spread
+		local dz = math.random() * spread * 2 - spread
+		for _,p in PathFinder.PathIterator(previous, target) do
+			Spring.GiveOrderToUnit(unitID, cmd, {p.x + dx, p.y, p.z + dz}, options)
+		end
+	else
+		for _,p in PathFinder.PathIterator(previous, target) do
+			Spring.GiveOrderToUnit(unitID, cmd, {p.x, p.y, p.z}, options)
+		end
 	end
 end
 
