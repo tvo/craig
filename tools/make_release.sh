@@ -16,7 +16,7 @@ cat > .tmp/modinfo.lua << EOD
 -- License: GNU General Public License v2
 
 local modinfo = {
-	name = "Spring: 1944 Konstantin + C.R.A.I.G. (v1.5)",
+	name = "Spring: 1944 Konstantin + C.R.A.I.G. (v2.0)",
 	shortName = "S44",
 	game = "Spring 1944",
 	shortGame = "S44",

@@ -1,3 +1,43 @@
+v1.5 -> v2.0
+============
+* Added waypoint editor widget.
+  - Can add new waypoints (press N).
+  - Can remove waypoints (hold mouse button and press M).
+  - Can move waypoints.
+  - Can toggle connections between waypoints (drag).
+  - Saves the profile in craig_maps/<mapname>.lua (create the 'craig_maps'
+    directory if you want to try this widget and save your work.)
+  - Automatically saves/loads the profile on shutdown/initialization.
+* Added waypoint manager, to track flags and ownership of waypoints.
+* Added pathfinder to navigate over the waypoint graph.
+* Added flag capping (depends on map waypoint profile).
+* Added some preliminary combat management (depends on map waypoint profile).
+  - It will use multiple paths to your base.
+  - It now sends units in "squads" of 24.
+  - Units move at the speed of the slowest unit in the squad.
+    (ie. tanks, halftracks and other vehicles stay between infantry.)
+  - Units in a squad get their orders jittered around the waypoints,
+    this way pinning/suppression is less effective to them and they magically
+    take line formation when fighting other infantry.
+* Added difficulty mod option.
+  - Easy: no resource cheating.
+  - Medium: cheats in 6% of what fits in storage every 128 game frames (~4 sec)
+            (e.g. when it's stalling and has 1k storage, this means +14 extra)
+  - Hard: infinite resources, as before.
+  - Build order and unit limits can be configured per difficulty level.
+* Included waypoint profiles for:
+  - 1944_BocageSkirmish
+  - 1944_BocageSmall
+  - 1944_Caucasus_Skirmish_V4
+  - 1944_Kiev_V4
+  - 1944_Road_To_Rome_V3
+  - 1944_Terra_Firma
+  - Altair_Crossing-V1
+  - Aquatic_Divide_TNM05-V2
+  - Prokhorovka_1944
+  - SnakeIslandV2
+  - For maps not listed here, the AI falls back to v1.5 behaviour.
+
 v1.1 -> v1.5
 ============
 * Added configurable unit limit using gadget:AllowUnitCreation callin.
