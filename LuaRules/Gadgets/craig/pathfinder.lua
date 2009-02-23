@@ -155,28 +155,29 @@ end
 local options = {"shift"}
 local UnitDefs = UnitDefs
 local GetUnitDefID = Spring.GetUnitDefID
+local GiveOrderToUnit = Spring.GiveOrderToUnit
 
 
-local function DoGiveOrdersToUnits(fun, previous, target, units, cmd, minMaxSpeed, spread)
+local function DoGiveOrdersToUnit(previous, target, unitID, cmd, minMaxSpeed, spread)
 	if spread then
 		local dx = math.random() * spread * 2 - spread
 		local dz = math.random() * spread * 2 - spread
 		for _,p in PathFinder.PathIterator(previous, target) do
-			fun(units, cmd, {p.x + dx, p.y, p.z + dz}, options)
-			fun(units, CMD.SET_WANTED_MAX_SPEED, {minMaxSpeed}, options)
+			GiveOrderToUnit(unitID, cmd, {p.x + dx, p.y, p.z + dz}, options)
+			GiveOrderToUnit(unitID, CMD.SET_WANTED_MAX_SPEED, {minMaxSpeed}, options)
 		end
 	else
 		for _,p in PathFinder.PathIterator(previous, target) do
-			fun(units, cmd, {p.x, p.y, p.z}, options)
-			fun(units, CMD.SET_WANTED_MAX_SPEED, {minMaxSpeed}, options)
+			GiveOrderToUnit(unitID, cmd, {p.x, p.y, p.z}, options)
+			GiveOrderToUnit(unitID, CMD.SET_WANTED_MAX_SPEED, {minMaxSpeed}, options)
 		end
 	end
 end
 
 
 function PathFinder.GiveOrdersToUnit(previous, target, unitID, cmd, spread)
-	local minMaxSpeed = UnitDefs[GetUnitDefID(unitID)].speed
-	return DoGiveOrdersToUnits(Spring.GiveOrderToUnit, previous, target, unitID, cmd, minMaxSpeed/30, spread)
+	local minMaxSpeed = UnitDefs[GetUnitDefID(unitID)].speed / 30
+	return DoGiveOrdersToUnit(previous, target, unitID, cmd, minMaxSpeed, spread)
 end
 
 
@@ -190,7 +191,10 @@ function PathFinder.GiveOrdersToUnitArray(previous, target, unitArray, cmd, spre
 			slowestUnit = u
 		end
 	end
-	return DoGiveOrdersToUnits(Spring.GiveOrderToUnitArray, previous, target, unitArray, cmd, minMaxSpeed/30, spread)
+	minMaxSpeed = minMaxSpeed / 30
+	for _,u in ipairs(unitArray) do
+		DoGiveOrdersToUnit(previous, target, u, cmd, minMaxSpeed, spread)
+	end
 end
 
 
@@ -204,7 +208,10 @@ function PathFinder.GiveOrdersToUnitMap(previous, target, unitMap, cmd, spread)
 			slowestUnit = u
 		end
 	end
-	return DoGiveOrdersToUnits(Spring.GiveOrderToUnitMap, previous, target, unitMap, cmd, minMaxSpeed/30, spread)
+	minMaxSpeed = minMaxSpeed / 30
+	for u,_ in pairs(unitMap) do
+		DoGiveOrdersToUnit(previous, target, u, cmd, minMaxSpeed, spread)
+	end
 end
 
 --------------------------------------------------------------------------------
