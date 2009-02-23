@@ -92,6 +92,9 @@ function Team.GameStart()
 			end
 		end
 	end
+	if waypointMgr then
+		flagsMgr.GameStart()
+	end
 	Log("Preparing to attack ", enemyBaseCount, " enemies")
 end
 

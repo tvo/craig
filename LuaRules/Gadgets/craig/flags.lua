@@ -9,6 +9,7 @@ Public interface:
 
 local FlagsMgr = CreateFlagsMgr(myTeamID, myAllyTeamID, mySide, Log)
 
+function FlagsMgr.GameStart()
 function FlagsMgr.GameFrame(f)
 function FlagsMgr.UnitFinished(unitID, unitDefID, unitTeam)
 function FlagsMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
@@ -65,6 +66,14 @@ end
 --  The call-in routines
 --
 
+function FlagsMgr.GameStart()
+	local startpos = waypointMgr.GetTeamStartPosition(myTeamID)
+	for u,_ in pairs(units) do
+		units[u] = startpos
+		Spring.GiveOrderToUnit(u, CMD.MOVE, {startpos.x, startpos.y, startpos.z}, {})
+	end
+end
+
 function FlagsMgr.GameFrame(f)
 	-- make temporary data structure of squads (units at or moving towards same waypoint)
 	local squads = {} -- waypoint -> array of unitIDs
@@ -74,10 +83,10 @@ function FlagsMgr.GameFrame(f)
 		squads[p] = squad
 	end
 	-- give each such squad new orders if the flags near it's destination are capped
-	for p,units in pairs(squads) do
+	for p,unitArray in pairs(squads) do
 		if p:AreAllFlagsCappedByTeam(myTeamID) then
 			Log("All flags capped near: ", p.x, ", ", p.z)
-			SendToNearestWaypointWithUncappedFlags(p, units)
+			SendToNearestWaypointWithUncappedFlags(p, unitArray)
 		end
 	end
 end
@@ -91,11 +100,16 @@ function FlagsMgr.UnitFinished(unitID, unitDefID, unitTeam)
 	if (unitCount < RESERVED_FLAG_CAPPERS) and
 	   ((tonumber(UnitDefs[unitDefID].customParams.flagcaprate or 0)) >= MINIMUM_FLAG_CAP_RATE) then
 
+		if (UnitDefs[unitDefID].speed == 0) then return end
+
 		-- HACK: special exception for Russian commander...
 		if (UnitDefs[unitDefID].name == "ruscommander") then return end
 
 		units[unitID] = waypointMgr.GetTeamStartPosition(myTeamID)
-		if (not units[unitID]) then return end
+		if (not units[unitID]) then
+			Log("No start position!")
+			units[unitID] = true
+		end
 
 		unitCount = unitCount + tonumber(UnitDefs[unitDefID].customParams.flagcaprate or 0)
 		Log("Capping flags using: ", UnitDefs[unitDefID].humanName)
