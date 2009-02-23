@@ -56,9 +56,9 @@ local combatMgr = CreateCombatMgr(myTeamID, myAllyTeamID, Log)
 local flagsMgr = CreateFlagsMgr(myTeamID, myAllyTeamID, Log)
 
 local function Refill(resource)
-	if (gadget.difficultyLevel ~= "easy") then
+	if (gadget.difficulty ~= "easy") then
 		local value,storage = Spring.GetTeamResources(myTeamID, resource)
-		if (gadget.difficultyLevel ~= "medium") then
+		if (gadget.difficulty ~= "medium") then
 			-- hard: full refill
 			Spring.AddTeamResource(myTeamID, resource, storage - value)
 		else

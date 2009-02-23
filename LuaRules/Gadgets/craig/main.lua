@@ -43,6 +43,16 @@ end
 
 --------------------------------------------------------------------------------
 
+-- globals
+waypointMgr = {}
+
+if (Spring.GetModOptions) then
+	local modOptions = Spring.GetModOptions()
+	difficulty = (modOptions.craig_difficulty or "hard")
+else
+	difficulty = "hard"
+end
+
 -- include configuration
 include("LuaRules/Configs/craig/buildorder.lua")
 
@@ -62,10 +72,6 @@ local CRAIG_Debug_Mode = 1 -- Must be 0 or 1
 local delayedCalls = {}
 local team = {}
 local waypointMgrGameFrameRate = 0
-
--- globals
-waypointMgr = {}
-difficultyLevel = "hard"
 
 --------------------------------------------------------------------------------
 
@@ -135,11 +141,6 @@ function gadget:Initialize()
 		__newindex = function() error("Attempt to write undeclared global variable", 2) end,
 	})
 	SetupCmdChangeAIDebugVerbosity()
-
-	if (Spring.GetModOptions) then
-		local modOptions = Spring.GetModOptions()
-		difficultyLevel = (modOptions.craig_difficulty or "hard")
-	end
 end
 
 function gadget:GamePreload()
