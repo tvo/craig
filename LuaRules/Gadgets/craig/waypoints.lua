@@ -256,7 +256,7 @@ function WaypointMgr.GameFrame(f)
 	for _,u in ipairs(GetUnitsInBox(x1, y1, z1, x2, y2, z2)) do
 		local ud = GetUnitDefID(u)
 		local at = GetUnitAllyTeam(u)
-		if (UnitDefs[ud].speed == 0) and (at ~= GAIA_ALLYTEAM_ID) then
+		if (UnitDefs[ud].speed == 0) and (UnitDefs[ud].name ~= "flag") and (at ~= GAIA_ALLYTEAM_ID) then
 			allyTeamUnitCount[at] = (allyTeamUnitCount[at] or 0) + 1
 		end
 	end
