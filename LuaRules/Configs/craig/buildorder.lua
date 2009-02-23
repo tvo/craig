@@ -229,6 +229,7 @@ gadget.baseBuilders = {
 -- deployed supply trucks, deployed guns, etc.)
 
 if (gadget.difficulty == "easy") then
+
 	-- On easy, limit both engineers and buildings until I've made an economy
 	-- manager that can tell the AI whether it has sufficient income to build
 	-- (and sustain) a particular building (factory).
@@ -241,7 +242,7 @@ if (gadget.difficulty == "easy") then
 		gerhqengineer        = 2,
 		gerengineer          = 1,
 		gersdkfz9            = 1,
-		ruscommissar         = 14, --12 for flag capping + 2 for base building
+		ruscommissar         = 5, --3 for flag capping + 2 for base building
 		rusengineer          = 2,
 		rusk31               = 1,
 		ushqengineer         = 2,
@@ -271,7 +272,9 @@ if (gadget.difficulty == "easy") then
 		rusvehicleyard = 1,
 		usvehicleyard  = 1,
 	}
+
 elseif (gadget.difficulty == "medium") then
+
 	-- On medium, limit engineers (much) more then on hard.
 	gadget.unitLimits = {
 		gbrhqengineer        = 3,
@@ -280,14 +283,16 @@ elseif (gadget.difficulty == "medium") then
 		gerhqengineer        = 3,
 		gerengineer          = 2,
 		gersdkfz9            = 1,
-		ruscommissar         = 15, --12 for flag capping + 3 for base building
+		ruscommissar         = 6, --3 for flag capping + 3 for base building
 		rusengineer          = 2,
 		rusk31               = 1,
 		ushqengineer         = 3,
 		usengineer           = 2,
 		usgmcengvehicle      = 1,
 	}
+
 else
+
 	-- On hard, limit only engineers (because they tend to get stuck if the
 	-- total group of engineers and construction vehicles is too big.)
 	gadget.unitLimits = {

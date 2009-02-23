@@ -23,7 +23,7 @@ local FlagsMgr = {}
 
 -- constants
 local MINIMUM_FLAG_CAP_RATE = 1  --only units with flagcaprate at least this high are used
-local RESERVED_FLAG_CAPPERS = 12 --number of units claimed by this module
+local RESERVED_FLAG_CAPPERS = 12 --total amount of flagcaprate (in units) claimed by this module
 
 -- speedups
 local DelayedCall = gadget.DelayedCall
@@ -87,7 +87,7 @@ function FlagsMgr.UnitFinished(unitID, unitDefID, unitTeam)
 		units[unitID] = waypointMgr.GetTeamStartPosition(myTeamID)
 		if (not units[unitID]) then return end
 
-		unitCount = unitCount + 1
+		unitCount = unitCount + tonumber(UnitDefs[unitDefID].customParams.flagcaprate or 0)
 		Log("Capping flags using: ", UnitDefs[unitDefID].humanName)
 
 		return true --signal Team.UnitFinished that we will control this unit
@@ -97,7 +97,7 @@ end
 function FlagsMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	if units[unitID] then
 		units[unitID] = nil
-		unitCount = unitCount - 1
+		unitCount = unitCount - tonumber(UnitDefs[unitDefID].customParams.flagcaprate or 0)
 		Log("Flag capper destroyed.")
 	end
 end
