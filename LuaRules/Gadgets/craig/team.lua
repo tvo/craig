@@ -56,8 +56,18 @@ local combatMgr = CreateCombatMgr(myTeamID, myAllyTeamID, Log)
 local flagsMgr = CreateFlagsMgr(myTeamID, myAllyTeamID, Log)
 
 local function Refill(resource)
-	local value,storage = Spring.GetTeamResources(myTeamID, resource)
-	Spring.AddTeamResource(myTeamID, resource, storage - value)
+	if (gadget.difficultyLevel ~= "easy") then
+		local value,storage = Spring.GetTeamResources(myTeamID, resource)
+		if (gadget.difficultyLevel ~= "medium") then
+			-- hard: full refill
+			Spring.AddTeamResource(myTeamID, resource, storage - value)
+		else
+			-- medium: partial refill
+			-- 1000 storage / 128 * 30 = approx. +234
+			-- this means 100% cheat is bonus of +234 metal at 1k storage
+			Spring.AddTeamResource(myTeamID, resource, (storage - value) * 0.05)
+		end
+	end
 end
 
 --------------------------------------------------------------------------------
