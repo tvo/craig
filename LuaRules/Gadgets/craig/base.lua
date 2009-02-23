@@ -28,6 +28,9 @@ function CreateBaseMgr(myTeamID, myAllyTeamID, mySide, Log)
 
 local BaseMgr = {}
 
+-- speedups
+local GetUnitDefID = Spring.GetUnitDefID
+
 -- Base building (one global buildOrder)
 local buildsiteFinder = CreateBuildsiteFinder(myTeamID)
 local baseBuildOrder = gadget.baseBuildOrder[mySide]
@@ -84,8 +87,12 @@ local function BuildBase()
 	-- nothing to do if we have no builders available yet who can build this
 	if not builderDefID then Log("No builder available for ", UnitDefs[unitDefID].humanName) return end
 
-	local builders = Spring.GetTeamUnitsByDefs(myTeamID, builderDefID)
-	if not builders then Log("internal error: Spring.GetTeamUnitsByDefs returned nil") return end
+	local builders = {}
+	for u,_ in pairs(myBaseBuilders) do
+		if (GetUnitDefID(u) == builderDefID) then
+			builders[#builders+1] = u
+		end
+	end
 
 	-- get a builder that isn't being build
 	local builderID
@@ -94,7 +101,7 @@ local function BuildBase()
 		if not inBuild then builderID = u break end
 	end
 	builderID = (builderID or builders[1])
-	if not builderID then Log("internal error: Spring.GetTeamUnitsByDefs returned empty array") return end
+	if not builderID then Log("internal error: no builders were found") return end
 
 	-- give the order to the builder, iff we can find a buildsite
 	local x,y,z,facing = buildsiteFinder.FindBuildsite(builderID, unitDefID, bUseClosestBuildSite)

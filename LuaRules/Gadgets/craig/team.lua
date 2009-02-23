@@ -53,7 +53,7 @@ local lastWaypoint = 0
 local combatMgr = CreateCombatMgr(myTeamID, myAllyTeamID, Log)
 
 -- Flag capping
-local flagsMgr = CreateFlagsMgr(myTeamID, myAllyTeamID, Log)
+local flagsMgr = CreateFlagsMgr(myTeamID, myAllyTeamID, mySide, Log)
 
 local function Refill(resource)
 	if (gadget.difficulty ~= "easy") then

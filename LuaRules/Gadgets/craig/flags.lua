@@ -7,12 +7,14 @@ interface methods.  Private data is stored in the function's closure.
 
 Public interface:
 
+local FlagsMgr = CreateFlagsMgr(myTeamID, myAllyTeamID, mySide, Log)
+
 function FlagsMgr.GameFrame(f)
 function FlagsMgr.UnitFinished(unitID, unitDefID, unitTeam)
 function FlagsMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 ]]--
 
-function CreateFlagsMgr(myTeamID, myAllyTeamID, Log)
+function CreateFlagsMgr(myTeamID, myAllyTeamID, mySide, Log)
 
 -- Can not do flag capping if we don't have waypoints..
 if (not gadget.waypointMgr) then
@@ -45,9 +47,14 @@ local function SendToNearestWaypointWithUncappedFlags(source, unitArray)
 		return (not p:AreAllFlagsCappedByTeam(myTeamID)) and (#p.flags > 0)
 	end)
 	if target then
+		local cmd = CMD.FIGHT
+		-- HACK: special exception for Russia, cause with fight the commissars will
+		-- only eat all map features and help base building, instead of capping flags.
+		if (mySide == "rus") then cmd = CMD.MOVE end
+		-- give orders
 		for _,u in ipairs(unitArray) do
 			units[u] = target --assume next call this unit will be at target
-			PathFinder.GiveOrdersToUnit(previous, target, u, CMD.FIGHT)
+			PathFinder.GiveOrdersToUnit(previous, target, u, cmd)
 		end
 	end
 end
@@ -83,6 +90,9 @@ end
 function FlagsMgr.UnitFinished(unitID, unitDefID, unitTeam)
 	if (unitCount < RESERVED_FLAG_CAPPERS) and
 	   ((tonumber(UnitDefs[unitDefID].customParams.flagcaprate or 0)) >= MINIMUM_FLAG_CAP_RATE) then
+
+		-- HACK: special exception for Russian commander...
+		if (UnitDefs[unitDefID].name == "ruscommander") then return end
 
 		units[unitID] = waypointMgr.GetTeamStartPosition(myTeamID)
 		if (not units[unitID]) then return end
