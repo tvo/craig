@@ -26,8 +26,12 @@ function PathFinder.PathIterator(previous, target)
 	Usage: 'for index, vertex in PathIterator(Dijkstra(graph, source), target)'
 
 function PathFinder.GiveOrdersToUnit(previous, target, unitID, cmd, spread)
+function PathFinder.GiveOrdersToUnitArray(previous, target, unitArray, cmd, spread)
+function PathFinder.GiveOrdersToUnitMap(previous, target, unitMap, cmd, spread)
 	Queues up cmds from the source which was used to generate 'previous' to
 	target for the given unit.
+	The second two functions which give orders to multiple units also calculate
+	the lowest unit speed in the group, and give a CMD.SET_WANTED_MAX_SPEED.
 
 The Dijkstra and ShortestPath functions have been separated because Dijkstra
 generates the shortest path from source to all vertices in the graph at once.
@@ -149,20 +153,58 @@ end
 
 --speedups
 local options = {"shift"}
+local UnitDefs = UnitDefs
+local GetUnitDefID = Spring.GetUnitDefID
 
 
-function PathFinder.GiveOrdersToUnit(previous, target, unitID, cmd, spread)
+local function DoGiveOrdersToUnits(fun, previous, target, units, cmd, minMaxSpeed, spread)
 	if spread then
 		local dx = math.random() * spread * 2 - spread
 		local dz = math.random() * spread * 2 - spread
 		for _,p in PathFinder.PathIterator(previous, target) do
-			Spring.GiveOrderToUnit(unitID, cmd, {p.x + dx, p.y, p.z + dz}, options)
+			fun(units, cmd, {p.x + dx, p.y, p.z + dz}, options)
+			fun(units, CMD.SET_WANTED_MAX_SPEED, {minMaxSpeed}, options)
 		end
 	else
 		for _,p in PathFinder.PathIterator(previous, target) do
-			Spring.GiveOrderToUnit(unitID, cmd, {p.x, p.y, p.z}, options)
+			fun(units, cmd, {p.x, p.y, p.z}, options)
+			fun(units, CMD.SET_WANTED_MAX_SPEED, {minMaxSpeed}, options)
 		end
 	end
+end
+
+
+function PathFinder.GiveOrdersToUnit(previous, target, unitID, cmd, spread)
+	local minMaxSpeed = UnitDefs[GetUnitDefID(unitID)].speed
+	return DoGiveOrdersToUnits(Spring.GiveOrderToUnit, previous, target, unitID, cmd, minMaxSpeed/30, spread)
+end
+
+
+function PathFinder.GiveOrdersToUnitArray(previous, target, unitArray, cmd, spread)
+	local minMaxSpeed = 1000
+	local slowestUnit
+	for _,u in ipairs(unitArray) do
+		local speed = UnitDefs[GetUnitDefID(u)].speed
+		if (speed < minMaxSpeed) then
+			minMaxSpeed = speed
+			slowestUnit = u
+		end
+	end
+	return DoGiveOrdersToUnits(Spring.GiveOrderToUnitArray, previous, target, unitArray, cmd, minMaxSpeed/30, spread)
+end
+
+
+function PathFinder.GiveOrdersToUnitMap(previous, target, unitMap, cmd, spread)
+	local minMaxSpeed = 1000
+	local slowestUnit
+	for u,_ in pairs(unitMap) do
+		local speed = UnitDefs[GetUnitDefID(u)].speed
+		if (speed < minMaxSpeed) then
+			minMaxSpeed = speed
+			slowestUnit = u
+		end
+	end
+	return DoGiveOrdersToUnits(Spring.GiveOrderToUnitMap, previous, target, unitMap, cmd, minMaxSpeed/30, spread)
 end
 
 --------------------------------------------------------------------------------

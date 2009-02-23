@@ -49,9 +49,9 @@ function CombatMgr.GameFrame(f)
 		lastWaypoint = (lastWaypoint % #frontline) + 1
 		local target = frontline[lastWaypoint]
 		if target then
+			PathFinder.GiveOrdersToUnitMap(previous, target, newUnits, CMD.FIGHT, SQUAD_SPREAD)
 			for u,_ in pairs(newUnits) do
 				units[u] = target -- remember where we are going for UnitIdle
-				PathFinder.GiveOrdersToUnit(previous, target, u, CMD.FIGHT, SQUAD_SPREAD)
 			end
 			newUnits = {}
 			newUnitCount = 0
@@ -77,9 +77,9 @@ function CombatMgr.GameFrame(f)
 			return ((p.owner or myAllyTeamID) ~= myAllyTeamID)
 		end)
 		if target and (target ~= p) then
+			PathFinder.GiveOrdersToUnitArray(previous, target, unitArray, CMD.FIGHT, SQUAD_SPREAD)
 			for _,u in ipairs(unitArray) do
 				units[u] = target --assume next call this unit will be at target
-				PathFinder.GiveOrdersToUnit(previous, target, u, CMD.FIGHT, SQUAD_SPREAD)
 			end
 		end
 	end
