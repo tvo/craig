@@ -175,10 +175,15 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 
 	-- if any unit manager takes care of the unit, return
 	-- managers are in order of preference
+
+	-- need to prefer flag capping over building to handle Russian commissars
+	if waypointMgr then
+		if flagsMgr.UnitFinished(unitID, unitDefID, unitTeam) then return end
+	end
+
 	if baseMgr.UnitFinished(unitID, unitDefID, unitTeam) then return end
 
 	if waypointMgr then
-		if flagsMgr.UnitFinished(unitID, unitDefID, unitTeam) then return end
 		if combatMgr.UnitFinished(unitID, unitDefID, unitTeam) then return end
 	end
 end
