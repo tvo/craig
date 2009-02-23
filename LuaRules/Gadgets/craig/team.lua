@@ -92,8 +92,11 @@ function Team.GameFrame(f)
 	Refill("energy")
 
 	baseMgr.GameFrame(f)
-	flagsMgr.GameFrame(f)
-	combatMgr.GameFrame(f)
+
+	if waypointMgr then
+		flagsMgr.GameFrame(f)
+		combatMgr.GameFrame(f)
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -163,16 +166,22 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 	-- if any unit manager takes care of the unit, return
 	-- managers are in order of preference
 	if baseMgr.UnitFinished(unitID, unitDefID, unitTeam) then return end
-	if flagsMgr.UnitFinished(unitID, unitDefID, unitTeam) then return end
-	if combatMgr.UnitFinished(unitID, unitDefID, unitTeam) then return end
+
+	if waypointMgr then
+		if flagsMgr.UnitFinished(unitID, unitDefID, unitTeam) then return end
+		if combatMgr.UnitFinished(unitID, unitDefID, unitTeam) then return end
+	end
 end
 
 function Team.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	Log("UnitDestroyed: ", UnitDefs[unitDefID].humanName)
 
 	baseMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	flagsMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	combatMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+
+	if waypointMgr then
+		flagsMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+		combatMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	end
 end
 
 function Team.UnitTaken(unitID, unitDefID, unitTeam, newTeam)
