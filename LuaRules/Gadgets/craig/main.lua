@@ -22,13 +22,16 @@ end
 
 -- If no AIs are in the game, ask for a quiet death.
 local team = {}
+local teamLeader = {}
 do
 	local count = 0
 	local name = gadget:GetInfo().name
 	for _,t in ipairs(Spring.GetTeamList()) do
 		if Spring.GetTeamLuaAI(t) == name then
+			local _,leader,_,_,side,at = Spring.GetTeamInfo(t)
+			team[t] = { leader = leader, side = side, allyTeam = at }
+			teamLeader[leader] = t
 			count = count + 1
-			team[t] = true
 		end
 	end
 	if count == 0 then return false end
@@ -65,6 +68,9 @@ if (gadgetHandler:IsSyncedCode()) then
 --  SYNCED
 --
 
+local orderQueue = {}
+
+
 function gadget:Initialize()
 	-- Set up the forwarding calls to the unsynced part of the gadget.
 	local SendToUnsynced = SendToUnsynced
@@ -96,7 +102,28 @@ local function Refill(myTeamID, resource)
 end
 
 
+local function DeserializeOrder(msg)
+	local b = {msg:byte(1, -1)}
+
+	local unitID = b[1] * 256 + b[2]
+	local cmd = b[3] * 256 + b[4] - 32768
+	local options = b[5]
+	local params = {}
+
+	for i=6,#b,2 do
+		params[#params+1] = b[i] * 256 + b[i+1]
+	end
+
+	return unitID, cmd, params, options
+end
+
+
 function gadget:GameFrame(f)
+	for _,order in ipairs(orderQueue) do
+		Spring.GiveOrderToUnit(DeserializeOrder(order))
+	end
+	orderQueue = {}
+
 	-- Perform economy cheating, this must be done in synced code!
 	if f % 128 < 0.1 then
 		for t,_ in pairs(team) do
@@ -107,6 +134,15 @@ function gadget:GameFrame(f)
 end
 
 
+function gadget:RecvLuaMsg(msg, player)
+	if (not teamLeader[player]) then
+		Spring.Echo("WARNING: PLAYER " .. player .. "TRIED TO SPOOF A C.R.A.I.G. LUA MESSAGE!!!")
+		return
+	end
+	orderQueue[#orderQueue+1] = msg
+end
+
+
 else
 
 --------------------------------------------------------------------------------
@@ -114,6 +150,46 @@ else
 --
 --  UNSYNCED
 --
+
+CMD.alt = CMD.OPT_ALT
+CMD.ctrl = CMD.OPT_CTRL
+CMD.shift = CMD.OPT_SHIFT
+CMD.right = CMD.OPT_RIGHT
+
+
+local function SerializeOrder(unitID, cmd, params, options)
+	if type(options) == "table" then
+		local newOptions = 0
+		for _,opt in ipairs(options) do
+			Spring.Echo(tostring(opt) .. " -> " .. tostring(CMD[opt]))
+			newOptions = newOptions + CMD[opt]
+		end
+		options = newOptions
+	end
+
+	local b = {}
+
+	b[1] = unitID / 256
+	b[2] = unitID % 256
+	cmd = cmd + 32768
+	b[3] = cmd / 256
+	b[4] = cmd % 256
+	b[5] = options
+
+	for i=1,#params do
+		params[i] = math.floor(params[i])
+		b[#b+1] = params[i] / 256
+		b[#b+1] = params[i] % 256
+	end
+
+	return string.char(unpack(b))
+end
+
+
+function Spring.GiveOrderToUnit(...)
+	Spring.SendLuaRulesMsg(SerializeOrder(...))
+end
+
 
 --constants
 local MY_PLAYER_ID = Spring.GetMyPlayerID()
