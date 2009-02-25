@@ -21,13 +21,26 @@ end
 
 
 -- If no AIs are in the game, ask for a quiet death.
+local team = {}
 do
 	local count = 0
 	local name = gadget:GetInfo().name
 	for _,t in ipairs(Spring.GetTeamList()) do
-		if Spring.GetTeamLuaAI(t) == name then count = count + 1 end
+		if Spring.GetTeamLuaAI(t) == name then
+			count = count + 1
+			team[t] = true
+		end
 	end
 	if count == 0 then return false end
+end
+
+
+-- Read mod options, we need this in both synced and unsynced code!
+if (Spring.GetModOptions) then
+	local modOptions = Spring.GetModOptions()
+	difficulty = (modOptions.craig_difficulty or "hard")
+else
+	difficulty = "hard"
 end
 
 
@@ -52,11 +65,47 @@ if (gadgetHandler:IsSyncedCode()) then
 --  SYNCED
 --
 
--- Set up the forwarding calls to the unsynced part of the gadget.
-local SendToUnsynced = SendToUnsynced
-for _,callIn in pairs(callInList) do
-	gadget[callIn] = function(self, ...) SendToUnsynced(callIn, ...) end
+function gadget:Initialize()
+	-- Set up the forwarding calls to the unsynced part of the gadget.
+	local SendToUnsynced = SendToUnsynced
+	for _,callIn in pairs(callInList) do
+		local fun = gadget[callIn]
+		if (fun ~= nil) then
+			gadget[callIn] = function(self, ...) fun(self, ...) SendToUnsynced(callIn, ...) end
+		else
+			gadget[callIn] = function(self, ...) SendToUnsynced(callIn, ...) end
+		end
+		gadgetHandler:UpdateCallIn(callIn)
+	end
 end
+
+
+local function Refill(myTeamID, resource)
+	if (gadget.difficulty ~= "easy") then
+		local value,storage = Spring.GetTeamResources(myTeamID, resource)
+		if (gadget.difficulty ~= "medium") then
+			-- hard: full refill
+			Spring.AddTeamResource(myTeamID, resource, storage - value)
+		else
+			-- medium: partial refill
+			-- 1000 storage / 128 * 30 = approx. +234
+			-- this means 100% cheat is bonus of +234 metal at 1k storage
+			Spring.AddTeamResource(myTeamID, resource, (storage - value) * 0.06)
+		end
+	end
+end
+
+
+function gadget:GameFrame(f)
+	-- Perform economy cheating, this must be done in synced code!
+	if f % 128 < 0.1 then
+		for t,_ in pairs(team) do
+			Refill(t, "metal")
+			Refill(t, "energy")
+		end
+	end
+end
+
 
 else
 
@@ -86,13 +135,6 @@ end
 
 -- globals
 waypointMgr = {}
-
-if (Spring.GetModOptions) then
-	local modOptions = Spring.GetModOptions()
-	difficulty = (modOptions.craig_difficulty or "hard")
-else
-	difficulty = "hard"
-end
 
 -- include configuration
 include("LuaRules/Configs/craig/buildorder.lua")
@@ -198,10 +240,13 @@ function gadget:GamePreload()
 		waypointMgrGameFrameRate = waypointMgr.GetGameFrameRate()
 	end
 	-- Initialise AI for all team that are set to use it
+	local name = gadget:GetInfo().name
 	for _,t in ipairs(Spring.GetTeamList()) do
-		if Spring.GetTeamLuaAI(t) == gadget:GetInfo().name then
-			local _,_,_,_,side,at = Spring.GetTeamInfo(t)
-			team[t] = CreateTeam(t, at, side)
+		if Spring.GetTeamLuaAI(t) ==  name then
+			local _,leader,_,_,side,at = Spring.GetTeamInfo(t)
+			if (leader == MY_PLAYER_ID) then
+				team[t] = CreateTeam(t, at, side)
+			end
 		end
 	end
 end
