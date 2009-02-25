@@ -2,6 +2,7 @@
 -- License: GNU General Public License v2
 
 -- Slightly based on the Kernel Panic AI by KDR_11k (David Becker) and zwzsg.
+-- Thanks to lurker for providing hints on how to make the AI run unsynced.
 
 -- In-game, type /luarules craig in the console to toggle the ai debug messages
 
@@ -15,30 +16,70 @@ function gadget:GetInfo()
   		layer = 82,
 		enabled = true
 	}
+
 end
 
-do
--- If not in synced code, ask for a quiet death.
--- (Tried to make the AI unsynced one time but I seem to get no
---  Unit events then so it's pointless... (no errors either))
-if (not gadgetHandler:IsSyncedCode()) then
-	return false
-end
 
 -- If no AIs are in the game, ask for a quiet death.
-local function CountBots()
+do
 	local count = 0
+	local name = gadget:GetInfo().name
 	for _,t in ipairs(Spring.GetTeamList()) do
-		if Spring.GetTeamLuaAI(t) == gadget:GetInfo().name then
-			count = count + 1
-		end
+		if Spring.GetTeamLuaAI(t) == name then count = count + 1 end
 	end
-	return count
+	if count == 0 then return false end
 end
 
-if CountBots() == 0 then
-	return false
+
+local callInList = {
+	"GamePreload",
+	"GameStart",
+	"GameFrame",
+	"TeamDied",
+	"UnitCreated",
+	"UnitFinished",
+	"UnitDestroyed",
+	"UnitTaken",
+	"UnitGiven",
+	"UnitIdle",
+}
+
+if (gadgetHandler:IsSyncedCode()) then
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--
+--  SYNCED
+--
+
+-- Set up the forwarding calls to the unsynced part of the gadget.
+local SendToUnsynced = SendToUnsynced
+for _,callIn in pairs(callInList) do
+	gadget[callIn] = function(self, ...) SendToUnsynced(callIn, ...) end
 end
+
+else
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--
+--  UNSYNCED
+--
+
+--constants
+local MY_PLAYER_ID = Spring.GetMyPlayerID()
+
+-- If we are not teamLeader of an AI team, ask for a quiet death.
+do
+	local count = 0
+	local name = gadget:GetInfo().name
+	for _,t in ipairs(Spring.GetTeamList()) do
+		if Spring.GetTeamLuaAI(t) == name then
+			local _,leader,_,_,_,_ = Spring.GetTeamInfo(t)
+			if (leader == MY_PLAYER_ID) then count = count + 1 end
+		end
+	end
+	if count == 0 then return false end
 end
 
 --------------------------------------------------------------------------------
@@ -97,7 +138,7 @@ local function SetupCmdChangeAIDebugVerbosity()
 	func = ChangeAIDebugVerbosity
 	help = " [0|1]: make C.R.A.I.G. shut up or fill your infolog"
 	gadgetHandler:AddChatAction(cmd,func,help)
-	Script.AddActionFallback(cmd .. ' ',help)
+	--Script.AddActionFallback(cmd .. ' ',help)
 end
 
 function gadget.Log(...)
@@ -140,6 +181,11 @@ function gadget:Initialize()
 		__index = function() error("Attempt to read undeclared global variable", 2) end,
 		__newindex = function() error("Attempt to write undeclared global variable", 2) end,
 	})
+	for _,callIn in pairs(callInList) do
+		local fun = gadget[callIn]
+		--fun = function(name, ...) Spring.Echo("UNSYNCED: "..name) gadget[callIn](name, ...) end
+		gadgetHandler:AddSyncAction(callIn, fun)
+	end
 	SetupCmdChangeAIDebugVerbosity()
 end
 
@@ -261,4 +307,6 @@ function gadget:UnitIdle(unitID, unitDefID, unitTeam)
 	if team[unitTeam] then
 		team[unitTeam].UnitIdle(unitID, unitDefID, unitTeam)
 	end
+end
+
 end
