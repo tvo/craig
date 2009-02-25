@@ -161,7 +161,6 @@ local function SerializeOrder(unitID, cmd, params, options)
 	if type(options) == "table" then
 		local newOptions = 0
 		for _,opt in ipairs(options) do
-			Spring.Echo(tostring(opt) .. " -> " .. tostring(CMD[opt]))
 			newOptions = newOptions + CMD[opt]
 		end
 		options = newOptions
