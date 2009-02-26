@@ -22,7 +22,6 @@ end
 
 -- If no AIs are in the game, ask for a quiet death.
 local team = {}
-local teamLeader = {}
 do
 	local count = 0
 	local name = gadget:GetInfo().name
@@ -30,7 +29,6 @@ do
 		if Spring.GetTeamLuaAI(t) == name then
 			local _,leader,_,_,side,at = Spring.GetTeamInfo(t)
 			team[t] = { leader = leader, side = side, allyTeam = at }
-			teamLeader[leader] = t
 			count = count + 1
 		end
 	end
@@ -47,11 +45,8 @@ else
 end
 
 
--- include framework code
-include("LuaRules/Gadgets/craig/serialize.lua")
-
-
-local callInList = {
+-- Set up unsynced AI framework.
+callInList = {
 	"GamePreload",
 	"GameStart",
 	"GameFrame",
@@ -63,6 +58,8 @@ local callInList = {
 	"UnitGiven",
 	"UnitIdle",
 }
+include("LuaRules/Gadgets/craig/serialize.lua")
+
 
 if (gadgetHandler:IsSyncedCode()) then
 
@@ -71,24 +68,6 @@ if (gadgetHandler:IsSyncedCode()) then
 --
 --  SYNCED
 --
-
-local orderQueue = {}
-
-
-function gadget:Initialize()
-	-- Set up the forwarding calls to the unsynced part of the gadget.
-	local SendToUnsynced = SendToUnsynced
-	for _,callIn in pairs(callInList) do
-		local fun = gadget[callIn]
-		if (fun ~= nil) then
-			gadget[callIn] = function(self, ...) fun(self, ...) SendToUnsynced(callIn, ...) end
-		else
-			gadget[callIn] = function(self, ...) SendToUnsynced(callIn, ...) end
-		end
-		gadgetHandler:UpdateCallIn(callIn)
-	end
-end
-
 
 local function Refill(myTeamID, resource)
 	if (gadget.difficulty ~= "easy") then
@@ -106,32 +85,20 @@ local function Refill(myTeamID, resource)
 end
 
 
-function gadget:GameFrame(f)
-	if (next(orderQueue) ~= nil) then
-		for _,order in ipairs(orderQueue) do
-			Spring.GiveOrderToUnit(DeserializeOrder(order))
-		end
-		orderQueue = {}
-	end
+do
+	local GameFrame = gadget.GameFrame
 
-	-- Perform economy cheating, this must be done in synced code!
-	if f % 128 < 0.1 then
-		for t,_ in pairs(team) do
-			Refill(t, "metal")
-			Refill(t, "energy")
+	function gadget:GameFrame(f)
+		-- Perform economy cheating, this must be done in synced code!
+		if f % 128 < 0.1 then
+			for t,_ in pairs(team) do
+				Refill(t, "metal")
+				Refill(t, "energy")
+			end
 		end
+		return GameFrame(self, f)
 	end
 end
-
-
-function gadget:RecvLuaMsg(msg, player)
-	if (not teamLeader[player]) then
-		Spring.Echo("WARNING: PLAYER " .. player .. "TRIED TO SPOOF A C.R.A.I.G. LUA MESSAGE!!!")
-		return
-	end
-	orderQueue[#orderQueue+1] = msg
-end
-
 
 else
 
@@ -244,20 +211,13 @@ end
 --  gadget:UnitCreated (for each HQ / comm)
 --  gadget:GameStart
 
-function gadget:Initialize()
+function gadget:GamePreload()
 	setmetatable(gadget, {
 		__index = function() error("Attempt to read undeclared global variable", 2) end,
 		__newindex = function() error("Attempt to write undeclared global variable", 2) end,
 	})
-	for _,callIn in pairs(callInList) do
-		local fun = gadget[callIn]
-		--fun = function(name, ...) Spring.Echo("UNSYNCED: "..name) gadget[callIn](name, ...) end
-		gadgetHandler:AddSyncAction(callIn, fun)
-	end
 	SetupCmdChangeAIDebugVerbosity()
-end
 
-function gadget:GamePreload()
 	-- This is executed BEFORE headquarters / commander is spawned
 	Log("gadget:GamePreload")
 	-- Intialise waypoint manager
