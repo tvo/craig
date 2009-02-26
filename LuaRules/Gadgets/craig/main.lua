@@ -47,6 +47,10 @@ else
 end
 
 
+-- include framework code
+include("LuaRules/Gadgets/craig/serialize.lua")
+
+
 local callInList = {
 	"GamePreload",
 	"GameStart",
@@ -102,27 +106,13 @@ local function Refill(myTeamID, resource)
 end
 
 
-local function DeserializeOrder(msg)
-	local b = {msg:byte(1, -1)}
-
-	local unitID = b[1] * 256 + b[2]
-	local cmd = b[3] * 256 + b[4] - 32768
-	local options = b[5]
-	local params = {}
-
-	for i=6,#b,2 do
-		params[#params+1] = b[i] * 256 + b[i+1]
-	end
-
-	return unitID, cmd, params, options
-end
-
-
 function gadget:GameFrame(f)
-	for _,order in ipairs(orderQueue) do
-		Spring.GiveOrderToUnit(DeserializeOrder(order))
+	if (next(orderQueue) ~= nil) then
+		for _,order in ipairs(orderQueue) do
+			Spring.GiveOrderToUnit(DeserializeOrder(order))
+		end
+		orderQueue = {}
 	end
-	orderQueue = {}
 
 	-- Perform economy cheating, this must be done in synced code!
 	if f % 128 < 0.1 then
@@ -150,45 +140,6 @@ else
 --
 --  UNSYNCED
 --
-
-CMD.alt = CMD.OPT_ALT
-CMD.ctrl = CMD.OPT_CTRL
-CMD.shift = CMD.OPT_SHIFT
-CMD.right = CMD.OPT_RIGHT
-
-
-local function SerializeOrder(unitID, cmd, params, options)
-	if type(options) == "table" then
-		local newOptions = 0
-		for _,opt in ipairs(options) do
-			newOptions = newOptions + CMD[opt]
-		end
-		options = newOptions
-	end
-
-	local b = {}
-
-	b[1] = unitID / 256
-	b[2] = unitID % 256
-	cmd = cmd + 32768
-	b[3] = cmd / 256
-	b[4] = cmd % 256
-	b[5] = options
-
-	for i=1,#params do
-		params[i] = math.floor(params[i])
-		b[#b+1] = params[i] / 256
-		b[#b+1] = params[i] % 256
-	end
-
-	return string.char(unpack(b))
-end
-
-
-function Spring.GiveOrderToUnit(...)
-	Spring.SendLuaRulesMsg(SerializeOrder(...))
-end
-
 
 --constants
 local MY_PLAYER_ID = Spring.GetMyPlayerID()
