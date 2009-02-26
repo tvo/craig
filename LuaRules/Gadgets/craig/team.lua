@@ -128,7 +128,7 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 				-- If there are no enemies, don't bother lagging Spring to death:
 				-- just go through the build queue exactly once, instead of repeating it.
 				if enemyBaseCount > 0 then
-					Spring.GiveOrderToUnit(unitID, CMD.REPEAT, {1}, {})
+					GiveOrderToUnit(unitID, CMD.REPEAT, {1}, {})
 					-- Each next factory gives fight command to next enemy.
 					-- Didn't use math.random() because it's really hard to establish
 					-- a 100% correct distribution when you don't know whether the
@@ -142,7 +142,7 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 						local idx = enemyBaseLastAttacked
 						for i=1,enemyBaseCount do
 							-- enemyBases[] is in the right format to pass into GiveOrderToUnit...
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT, enemyBases[idx], {"shift"})
+							GiveOrderToUnit(unitID, CMD.FIGHT, enemyBases[idx], {"shift"})
 							idx = idx + 1
 							if idx > enemyBaseCount then idx = 1 end
 						end
@@ -150,7 +150,7 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 				end
 				for _,bo in ipairs(unitBuildOrder[unitDefID]) do
 					Log("Queueing: ", UnitDefs[bo].humanName)
-					Spring.GiveOrderToUnit(unitID, -bo, {}, {})
+					GiveOrderToUnit(unitID, -bo, {}, {})
 				end
 			else
 				Log("Warning: unitBuildOrder can only be used to control factories")

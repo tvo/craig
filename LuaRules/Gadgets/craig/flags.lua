@@ -70,7 +70,7 @@ function FlagsMgr.GameStart()
 	local startpos = waypointMgr.GetTeamStartPosition(myTeamID)
 	for u,_ in pairs(units) do
 		units[u] = startpos
-		Spring.GiveOrderToUnit(u, CMD.MOVE, {startpos.x, startpos.y, startpos.z}, {})
+		GiveOrderToUnit(u, CMD.MOVE, {startpos.x, startpos.y, startpos.z}, {})
 	end
 end
 
