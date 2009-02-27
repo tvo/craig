@@ -20,22 +20,6 @@ function gadget:GetInfo()
 end
 
 
--- If no AIs are in the game, ask for a quiet death.
-local team = {}
-do
-	local count = 0
-	local name = gadget:GetInfo().name
-	for _,t in ipairs(Spring.GetTeamList()) do
-		if Spring.GetTeamLuaAI(t) == name then
-			local _,leader,_,_,side,at = Spring.GetTeamInfo(t)
-			team[t] = { leader = leader, side = side, allyTeam = at }
-			count = count + 1
-		end
-	end
-	if count == 0 then return false end
-end
-
-
 -- Read mod options, we need this in both synced and unsynced code!
 if (Spring.GetModOptions) then
 	local modOptions = Spring.GetModOptions()
@@ -43,22 +27,6 @@ if (Spring.GetModOptions) then
 else
 	difficulty = "hard"
 end
-
-
--- Set up unsynced AI framework.
-callInList = {
-	"GamePreload",
-	"GameStart",
-	"GameFrame",
-	"TeamDied",
-	"UnitCreated",
-	"UnitFinished",
-	"UnitDestroyed",
-	"UnitTaken",
-	"UnitGiven",
-	"UnitIdle",
-}
-include("LuaRules/Gadgets/craig/framework.lua")
 
 
 if (gadgetHandler:IsSyncedCode()) then
@@ -110,21 +78,6 @@ else
 
 --constants
 local MY_PLAYER_ID = Spring.GetMyPlayerID()
-
--- If we are not teamLeader of an AI team, ask for a quiet death.
-do
-	local count = 0
-	local name = gadget:GetInfo().name
-	for _,t in ipairs(Spring.GetTeamList()) do
-		if Spring.GetTeamLuaAI(t) == name then
-			local _,leader,_,_,_,_ = Spring.GetTeamInfo(t)
-			if (leader == MY_PLAYER_ID) then count = count + 1 end
-		end
-	end
-	if count == 0 then return false end
-end
-
---------------------------------------------------------------------------------
 
 -- globals
 waypointMgr = {}
@@ -211,13 +164,16 @@ end
 --  gadget:UnitCreated (for each HQ / comm)
 --  gadget:GameStart
 
-function gadget:GamePreload()
+function gadget:Initialize()
 	setmetatable(gadget, {
 		__index = function() error("Attempt to read undeclared global variable", 2) end,
 		__newindex = function() error("Attempt to write undeclared global variable", 2) end,
 	})
 	SetupCmdChangeAIDebugVerbosity()
+end
 
+
+function gadget:GamePreload()
 	-- This is executed BEFORE headquarters / commander is spawned
 	Log("gadget:GamePreload")
 	-- Intialise waypoint manager
@@ -341,3 +297,19 @@ function gadget:UnitIdle(unitID, unitDefID, unitTeam)
 end
 
 end
+
+
+-- Set up unsynced AI framework.
+callInList = {
+	"GamePreload",
+	"GameStart",
+	"GameFrame",
+	"TeamDied",
+	"UnitCreated",
+	"UnitFinished",
+	"UnitDestroyed",
+	"UnitTaken",
+	"UnitGiven",
+	"UnitIdle",
+}
+return include("LuaRules/Gadgets/craig/framework.lua")

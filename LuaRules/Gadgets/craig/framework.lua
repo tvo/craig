@@ -56,17 +56,22 @@ local orderQueue = {}
 --local allowedPlayers = {}
 local allowedTeams = {}
 
+
+-- If no AIs are in the game, ask for a quiet death.
 do
 	local name = gadget:GetInfo().name
+	local count = 0
 	for _,t in ipairs(Spring.GetTeamList()) do
 		if Spring.GetTeamLuaAI(t) == name then
-			local _,leader,_,_,_,_ = Spring.GetTeamInfo(t)
+			--local _,leader,_,_,_,_ = Spring.GetTeamInfo(t)
 			--allowedPlayers[leader] = true
 			--Log("SYNCED: allowed player: ", leader)
 			allowedTeams[t] = true
 			Log("SYNCED: allowed team: ", t)
+			count = count + 1
 		end
 	end
+	if count == 0 then return false end
 end
 
 
@@ -139,6 +144,21 @@ else
 --
 --  UNSYNCED
 --
+
+-- If we are not teamLeader of an AI team, ask for a quiet death.
+do
+	local count = 0
+	local name = gadget:GetInfo().name
+	local myPlayerID = Spring.GetMyPlayerID()
+	for _,t in ipairs(Spring.GetTeamList()) do
+		if Spring.GetTeamLuaAI(t) == name then
+			local _,leader,_,_,_,_ = Spring.GetTeamInfo(t)
+			if (leader == myPlayerID) then count = count + 1 end
+		end
+	end
+	if count == 0 then return false end
+end
+
 
 --globals
 local optionStringToNumber = {
