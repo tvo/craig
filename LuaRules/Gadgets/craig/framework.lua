@@ -34,7 +34,7 @@ end
 
 local function Log(...)
 	--uncomment to debug LUA AI framework code
-	Spring.Echo("LUA AI: " .. table.concat{...})
+	--Spring.Echo("LUA AI: " .. table.concat{...})
 end
 
 
@@ -250,7 +250,7 @@ local function Initialize(self)
 	for _,callIn in pairs(callInList) do
 		local fun = gadget[callIn]
 		--uncomment this to trace all callIn calls
-		fun = function(name, ...) Spring.Echo("UNSYNCED: " .. name) gadget[callIn](name, ...) end
+		--fun = function(name, ...) Spring.Echo("UNSYNCED: " .. name) gadget[callIn](name, ...) end
 		gadgetHandler:AddSyncAction(callIn, fun)
 	end
 end
