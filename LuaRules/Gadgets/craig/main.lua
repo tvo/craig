@@ -293,7 +293,7 @@ end
 end
 
 
--- Set up unsynced AI framework.
+-- Set up LUA AI framework.
 callInList = {
 	"GamePreload",
 	"GameStart",

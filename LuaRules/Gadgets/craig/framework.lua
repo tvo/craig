@@ -19,16 +19,35 @@ TODO: function GiveOrderToUnitArray(...)
 TODO: function GiveOrderArrayToUnitMap(...)
 TODO: function GiveOrderArrayToUnitArray(...)
 
-When you need to handle one of the above callIns too, you can use the following
-pattern to chain your functions together with those defined in this file:
+This framework automatically chains it's gadget methods with user defined
+gadget methods, so effectively both get called. In other words, you can safely
+define your own (synced/unsynced) gadget:GameFrame, this framework work ensure
+both it's own code as your code gets called.
 
-do
-	local GameFrame = gadget:GameFrame
-	function gadget:GameFrame(f)
-		-- insert your own code here
-		return GameFrame(self, f)
-	end
+Additionally, the framework examines the team list and tries to kill the gadget
+whenever there are no AI teams or (for the unsynced part) when there are no AI
+teams with the current player as team leader.
+
+For this to work, the framework needs to be included at the end of the main
+gadget file, and the result of the include statement needs to be returned to
+the gadgetHandler.
+
+Example:
+
+if (not gadgetHandler:IsSyncedCode()) then
+
+-- Your own unsynced LUA AI callins and code.
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	Spring.Echo("UnitCreated: " .. UnitDefs[unitDefID].humanName)
 end
+
+end
+
+-- Set up LUA AI framework.
+callInList = {
+	"UnitCreated",
+}
+return include("LuaRules/Gadgets/.../framework.lua")
 ]]--
 
 
