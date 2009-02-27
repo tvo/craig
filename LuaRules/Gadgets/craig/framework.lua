@@ -66,12 +66,14 @@ if (gadgetHandler:IsSyncedCode()) then
 --
 
 --speedups
+local bit_and = math.bit_and
 local GiveOrderToUnit = Spring.GiveOrderToUnit
 local ValidUnitID = Spring.ValidUnitID
 local GetUnitTeam = Spring.GetUnitTeam
 
 -- globals
-local orderQueue = {}
+local numMessages = 0
+local messageQueue = {}
 --local allowedPlayers = {}
 local allowedTeams = {}
 
@@ -96,23 +98,32 @@ do
 end
 
 
-local function DeserializeAndProcessOrder(msg)
-	local b = {msg:byte(2, -1)} --first byte is signature
-	local unitID = b[1] * 256 + b[2]
+local function DeserializeAndProcessMessage(msg)
+	local msgpos = 1 --first byte is signature
+	local msglen = msg:len()
 
-	-- unit may have died between SendLuaRulesMsg and GameFrame
-	-- worse, a new unit might have been created with same unitID
-	if ValidUnitID(unitID) and allowedTeams[GetUnitTeam(unitID)] then
-		local cmd = b[3] * 256 + b[4] - 32768
-		local options = b[5]
+	while (msgpos < msglen) do
+		local b1, b2, b3, b4, b5 = msg:byte(msgpos+1, msgpos+5)
+		msgpos = msgpos + 5
+
+		local unitID    = b1 * 256 + b2
+		local cmd       = b3 * 256 + b4 - 32768
+		local options   = bit_and(b5, 240)
+		local numParams = bit_and(b5, 15)
+
 		local params = {}
-
-		for i=6,#b,2 do
-			params[#params+1] = b[i] * 256 + b[i+1] - 32768
+		for i=1,numParams do
+			b1, b2 = msg:byte(msgpos+1, msgpos+2)
+			msgpos = msgpos + 2
+			params[i] = b1 * 256 + b2 - 32768
 		end
 
-		Log("SYNCED: DeserializeAndProcessOrder: ", unitID)
-		GiveOrderToUnit(unitID, cmd, params, options)
+		-- unit may have died between SendLuaRulesMsg and GameFrame
+		-- worse, a new unit might have been created with same unitID
+		if ValidUnitID(unitID) and allowedTeams[GetUnitTeam(unitID)] then
+			--Log("SYNCED: DeserializeAndProcessOrder: ", unitID)
+			GiveOrderToUnit(unitID, cmd, params, options)
+		end
 	end
 end
 
@@ -138,12 +149,13 @@ end
 
 
 local function GameFrame(self)
-	if (next(orderQueue) ~= nil) then
-		Log("SYNCED: GameFrame: processing ", #orderQueue, " orders")
-		for _,order in ipairs(orderQueue) do
-			DeserializeAndProcessOrder(order)
+	if (numMessages ~= 0) then
+		Log("SYNCED: GameFrame: processing ", numMessages, " messages")
+		for _,msg in ipairs(messageQueue) do
+			DeserializeAndProcessMessage(msg)
 		end
-		orderQueue = {}
+		numMessages = 0
+		messageQueue = {}
 	end
 end
 
@@ -154,7 +166,8 @@ local function RecvLuaMsg(self, msg, player)
 	if (msg:byte() == 213) then
 		Log("SYNCED: RecvLuaMsg from player ", player)
 		-- it's not allowed to call GiveOrderToUnit here
-		orderQueue[#orderQueue+1] = msg
+		numMessages = numMessages + 1
+		messageQueue[numMessages] = msg
 	end
 end
 
@@ -214,6 +227,8 @@ local optionStringToNumber = {
 	shift = CMD.OPT_SHIFT,
 	right = CMD.OPT_RIGHT,
 }
+local bufferSize = 1
+local messageBuffer = {string.char(213)}
 
 
 local function SerializeOrder(unitID, cmd, params, options)
@@ -229,16 +244,15 @@ local function SerializeOrder(unitID, cmd, params, options)
 	cmd = cmd + 32768 --signed 16 bit integer range
 
 	local b = {
-		213,          --signature
 		unitID / 256,
 		unitID % 256,
 		cmd / 256,
 		cmd % 256,
-		options,
+		options + #params, --options are in high 4 (5) bits
 	}
 
 	for i=1,#params do
-		local param = math.floor(params[i]) + 32768
+		local param = params[i] + 32768
 		b[#b+1] = param / 256
 		b[#b+1] = param % 256
 	end
@@ -255,8 +269,9 @@ end
 
 
 function GiveOrderToUnit(unitID, cmd, params, options)
-	Log("UNSYNCED: GiveOrderToUnit ", unitID)
-	Spring.SendLuaRulesMsg(SerializeOrder(unitID, cmd, params, options))
+	--Log("UNSYNCED: GiveOrderToUnit ", unitID)
+	bufferSize = bufferSize + 1
+	messageBuffer[bufferSize] = SerializeOrder(unitID, cmd, params, options)
 end
 
 --------------------------------------------------------------------------------
@@ -274,6 +289,16 @@ local function Initialize(self)
 	end
 end
 
+
+local function GameFrame(self, f)
+	if (bufferSize ~= 1) then
+		Log("UNSYNCED: GameFrame: sending ", bufferSize - 1, " orders")
+		Spring.SendLuaRulesMsg(table.concat(messageBuffer))
+		bufferSize = 1
+		messageBuffer = {string.char(213)}
+	end
+end
+
 --------------------------------------------------------------------------------
 
 if gadget.Initialize then
@@ -281,6 +306,16 @@ if gadget.Initialize then
 	gadget.Initialize = function(self) Initialize(self) return fun(self) end
 else
 	gadget.Initialize = Initialize
+end
+
+if gadget.GameFrame then
+	local fun = gadget.GameFrame
+	-- Call the user GameFrame first, and only then the framework GameFrame.
+	-- This way as much orders can be combined into a single message as possible,
+	-- assuming sometime orders will be given from inside the user GameFrame.
+	gadget.GameFrame = function(self, f) fun(self, f) return GameFrame(self, f) end
+else
+	gadget.GameFrame = GameFrame
 end
 
 end
