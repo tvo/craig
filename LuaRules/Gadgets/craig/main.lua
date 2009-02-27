@@ -23,7 +23,8 @@ end
 -- Read mod options, we need this in both synced and unsynced code!
 if (Spring.GetModOptions) then
 	local modOptions = Spring.GetModOptions()
-	difficulty = (modOptions.craig_difficulty or "hard")
+	local lookup = {"easy", "medium", "hard"}
+	difficulty = lookup[tonumber(modOptions.craig_difficulty) or 2]
 else
 	difficulty = "hard"
 end
