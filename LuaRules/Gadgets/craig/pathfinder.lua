@@ -155,7 +155,6 @@ end
 local options = {"shift"}
 local UnitDefs = UnitDefs
 local GetUnitDefID = Spring.GetUnitDefID
-local GiveOrderToUnit = GiveOrderToUnit
 
 
 local function DoGiveOrdersToUnit(previous, target, unitID, cmd, minMaxSpeed, spread)
