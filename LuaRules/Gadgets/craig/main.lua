@@ -58,7 +58,7 @@ callInList = {
 	"UnitGiven",
 	"UnitIdle",
 }
-include("LuaRules/Gadgets/craig/serialize.lua")
+include("LuaRules/Gadgets/craig/framework.lua")
 
 
 if (gadgetHandler:IsSyncedCode()) then
