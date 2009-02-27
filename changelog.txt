@@ -13,6 +13,7 @@ v2.0 -> v2.3
   (because it can not properly handle the combined builders/flagcappers yet)
 * Based ModOptions.lua on the one from Operation Konstantin, instead of SVN.
 * AI difficulty modoption uses numeric keys now, fixes it in TASClient.
+* Reduced cheating at medium from 6% to 5%.
 
 v1.5 -> v2.0
 ============
