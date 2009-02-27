@@ -56,6 +56,8 @@ local orderQueue = {}
 --local allowedPlayers = {}
 local allowedTeams = {}
 
+gadget.team = allowedTeams
+
 
 -- If no AIs are in the game, ask for a quiet death.
 do
@@ -100,7 +102,7 @@ end
 --  The call-in routines
 --
 
-function gadget:Initialize()
+local function Initialize(self)
 	Log("SYNCED: Initialize")
 	-- Set up the forwarding calls to the unsynced part of the gadget.
 	local SendToUnsynced = SendToUnsynced
@@ -116,7 +118,7 @@ function gadget:Initialize()
 end
 
 
-function gadget:GameFrame(f)
+local function GameFrame(self)
 	if (next(orderQueue) ~= nil) then
 		Log("SYNCED: GameFrame: processing ", #orderQueue, " orders")
 		for _,order in ipairs(orderQueue) do
@@ -127,7 +129,7 @@ function gadget:GameFrame(f)
 end
 
 
-function gadget:RecvLuaMsg(msg, player)
+local function RecvLuaMsg(self, msg, player)
 	-- Tried to check allowedPlayers[player] too but this breaks replays, and
 	-- Spring.IsReplay() only returns true for hosted replays, not local ones.
 	if (msg:byte() == 213) then
@@ -135,6 +137,32 @@ function gadget:RecvLuaMsg(msg, player)
 		-- it's not allowed to call GiveOrderToUnit here
 		orderQueue[#orderQueue+1] = msg
 	end
+end
+
+--------------------------------------------------------------------------------
+
+if gadget.Initialize then
+	local fun = gadget.Initialize
+	gadget.Initialize = function(self) Initialize(self) return fun(self) end
+else
+	gadget.Initialize = Initialize
+end
+
+if gadget.GameFrame then
+	local fun = gadget.GameFrame
+	gadget.GameFrame = function(self, f) GameFrame(self, f) return fun(self, f) end
+else
+	gadget.GameFrame = GameFrame
+end
+
+if gadget.RecvLuaMsg then
+	local fun = gadget.RecvLuaMsg
+	gadget.RecvLuaMsg = function(self, msg, player)
+		if RecvLuaMsg(self, msg, player) then return true end
+		return fun(self, msg, player)
+	end
+else
+	gadget.RecvLuaMsg = RecvLuaMsg
 end
 
 else
@@ -217,7 +245,7 @@ end
 --  The call-in routines
 --
 
-function gadget:Initialize()
+local function Initialize(self)
 	Log("UNSYNCED: Initialize")
 	for _,callIn in pairs(callInList) do
 		local fun = gadget[callIn]
@@ -225,6 +253,15 @@ function gadget:Initialize()
 		fun = function(name, ...) Spring.Echo("UNSYNCED: " .. name) gadget[callIn](name, ...) end
 		gadgetHandler:AddSyncAction(callIn, fun)
 	end
+end
+
+--------------------------------------------------------------------------------
+
+if gadget.Initialize then
+	local fun = gadget.Initialize
+	gadget.Initialize = function(self) Initialize(self) return fun(self) end
+else
+	gadget.Initialize = Initialize
 end
 
 end

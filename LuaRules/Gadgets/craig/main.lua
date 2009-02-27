@@ -52,19 +52,13 @@ local function Refill(myTeamID, resource)
 	end
 end
 
-
-do
-	local GameFrame = gadget.GameFrame
-
-	function gadget:GameFrame(f)
-		-- Perform economy cheating, this must be done in synced code!
-		if f % 128 < 0.1 then
-			for t,_ in pairs(team) do
-				Refill(t, "metal")
-				Refill(t, "energy")
-			end
+function gadget:GameFrame(f)
+	-- Perform economy cheating, this must be done in synced code!
+	if f % 128 < 0.1 then
+		for t,_ in pairs(team) do
+			Refill(t, "metal")
+			Refill(t, "energy")
 		end
-		return GameFrame(self, f)
 	end
 end
 
