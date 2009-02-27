@@ -1,3 +1,16 @@
+v2.0 -> v2.2
+============
+* Major technical change: the AI now runs as unsynced code.
+  - CPU usage due to the AI happens only on one client, instead of all.
+  - AI is actually susceptible to network lag now, unfortunately.
+  - Desync bugs like the one in v2 can not exist anymore.
+  - Architecture is more similar to GlobalAI. (AI DLLs)
+  - There is a clear piece of framework code for building unsynced LUA AIs.
+* Gadget properly removes itself now if there are no AI teams.
+* Increased number of flag cappers from 12 to 24 for GBR, GER and US.
+* Decreased number of flag cappers from 3 to 2 for Russia.
+  (because it can not properly handle the combined builders/flagcappers yet)
+
 v1.5 -> v2.0
 ============
 * Added waypoint editor widget.
