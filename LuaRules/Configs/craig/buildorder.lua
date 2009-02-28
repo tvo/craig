@@ -28,7 +28,7 @@ gadget.unitBuildOrder = {
 		"imp_c_condroid", "imp_d_antiair",
 		"imp_is_assault", "imp_is_heavy",
 		"imp_is_defense", "imp_is_assault",
-		"imp_w_atrt", "imp_is_assault", 
+		"imp_w_atrt", "imp_is_assault",
 		"imp_is_scout", "imp_is_heavy",
 		"imp_is_defense",
 	},
@@ -82,7 +82,7 @@ gadget.unitBuildOrder = {
 
 -- Format: side = { "unit to build 1", "unit to build 2", ... }
 gadget.baseBuildOrder = {
-	imp = {
+	["galactic empire"] = {
 		-- I used storages basically to delay tech up a bit :P Making GBR the easy faction to play against.
 		"imp_b_barracks", "imp_p_solar", "imp_p_solar",
 		"imp_p_solar", "imp_p_solar", "imp_p_solar",
@@ -91,11 +91,11 @@ gadget.baseBuildOrder = {
 		"imp_b_barracks", "imp_p_estore", "imp_p_solar",
 		"imp_p_solar", "imp_p_solar", "imp_p_solar",
 		"imp_b_vehicleplant", "imp_p_estore", "imp_p_solar",
-		"imp_d_ioncannon.", "imp_p_fusion", "imp_p_fusion",
+		"imp_d_ioncannon", "imp_p_fusion", "imp_p_fusion",
 		"imp_b_airplant", "imp_p_estore", "imp_p_solar",
-		"imp_d_ioncannon.", "imp_p_fusion", "imp_p_fusion",
+		"imp_d_ioncannon", "imp_p_fusion", "imp_p_fusion",
 		"imp_b_barracks", "imp_p_fusion", "imp_p_fusion",
-		"imp_d_ioncannon.", "imp_d_antiair", "imp_p_fusion",
+		"imp_d_ioncannon", "imp_d_antiair", "imp_p_fusion",
 		"imp_b_droidplant", "imp_p_fusion", "imp_b_droidplant",
 		"imp_b_droidplant", "imp_p_fusion", "imp_b_droidplant",
 	},
