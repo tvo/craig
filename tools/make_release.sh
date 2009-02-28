@@ -16,7 +16,7 @@ cat > .tmp/modinfo.lua << EOD
 -- License: GNU General Public License v2
 
 local modinfo = {
-	name = "Imperial Winter 1.5.051 beta + C.R.A.I.G. (v2.3 alpha)",
+	name = "Imperial Winter 1.5.051 beta + C.R.A.I.G. (v2.4 alpha)",
 	shortname = "SWIW",
 	game = "Star Wars: Imperial Winter",
 	shortgame = "SWIW",
