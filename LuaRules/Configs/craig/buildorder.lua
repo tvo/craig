@@ -110,6 +110,7 @@ gadget.baseBuilders = {
 -- This lists all the units (of all sides) that may be used to cap flags.
 gadget.flagCappers = {
 	--TODO: add flag cappers
+	"imp_i_scouttrooper",
 }
 
 -- Number of units per side used to cap flags.
