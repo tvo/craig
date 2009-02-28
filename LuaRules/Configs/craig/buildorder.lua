@@ -107,6 +107,17 @@ gadget.baseBuilders = {
 	"imp_c_protocon",
 }
 
+-- This lists all the units that should be considers flags.
+gadget.flags = {
+	"a_p_flag",
+	"imp_p_flag",
+	"imp_p_flagmil1",
+	"imp_p_flagecon1",
+	"reb_p_flag",
+	"reb_p_flagmil1",
+	"reb_p_flagecon1",
+}
+
 -- This lists all the units (of all sides) that may be used to cap flags.
 gadget.flagCappers = {
 	--TODO: add flag cappers
