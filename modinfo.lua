@@ -2,7 +2,7 @@
 -- License: GNU General Public License v2
 
 local modinfo = {
-	name = "Imperial Winter 1.5.051 beta + C.R.A.I.G. (v2.0)",
+	name = "Imperial Winter 1.5.051 beta + C.R.A.I.G. (git)",
 	shortname = "SWIW",
 	game = "Star Wars: Imperial Winter",
 	shortgame = "SWIW",
@@ -14,6 +14,5 @@ local modinfo = {
 		"sws.v051.sdz",
 	}
 }
-
 
 return modinfo
