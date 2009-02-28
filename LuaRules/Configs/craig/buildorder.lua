@@ -181,7 +181,6 @@ gadget.baseBuildOrder = {
 		"ruspshack", "ruspshack",
 		"rusvehicleyard", "rusvehicleyard", "rusvehicleyard",
 		"rustankyard", "rustankyard", "rustankyard", "rustankyard", "rustankyard", "rustankyard", "rustankyard", "rustankyard",
-
 	},
 	ger = {
 		-- works J
@@ -192,7 +191,6 @@ gadget.baseBuildOrder = {
 		"gertankyard", "gertankyard", "gertankyard", "gertankyard",
 		"gersupplydepot",
 	},
-
 	us = {
 		-- Works J
 		"usbarracks", "usbarracks", "usbarracks",
@@ -202,7 +200,6 @@ gadget.baseBuildOrder = {
 		"ustankyard", "ustankyard", "ustankyard", "ustankyard",
 		"ussupplydepot",
 	},
-
 }
 
 -- This lists all the units (of all sides) that are considered "base builders"
@@ -222,6 +219,11 @@ gadget.baseBuilders = {
 	"usgmcengvehicle",
 }
 
+-- This lists all the units that should be considered flags.
+gadget.flags = {
+	"flag",
+}
+
 -- This lists all the units (of all sides) that may be used to cap flags.
 gadget.flagCappers = {
 	"gbrrifle", "gbrsten",
@@ -237,7 +239,6 @@ gadget.reservedFlagCappers = {
 	us  = 24,
 	rus = 2,
 }
-
 
 -- Currently I'm only configuring the the unitLimits per difficulty level,
 -- it's easy however to use a similar structure for the buildorders above.
