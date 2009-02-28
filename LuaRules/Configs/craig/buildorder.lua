@@ -222,6 +222,23 @@ gadget.baseBuilders = {
 	"usgmcengvehicle",
 }
 
+-- This lists all the units (of all sides) that may be used to cap flags.
+gadget.flagCappers = {
+	"gbrrifle", "gbrsten",
+	"gerrifle", "germp40",
+	"usgirifle", "usgithompson",
+	"ruscommissar", --no commander because it is needed for base building
+}
+
+-- Number of units per side used to cap flags.
+gadget.reservedFlagCappers = {
+	gbr = 24,
+	ger = 24,
+	us  = 24,
+	rus = 2,
+}
+
+
 -- Currently I'm only configuring the the unitLimits per difficulty level,
 -- it's easy however to use a similar structure for the buildorders above.
 
@@ -242,7 +259,7 @@ if (gadget.difficulty == "easy") then
 		gerhqengineer        = 2,
 		gerengineer          = 1,
 		gersdkfz9            = 1,
-		ruscommissar         = 5, --3 for flag capping + 2 for base building
+		ruscommissar         = 4, --2 for flag capping + 2 for base building
 		rusengineer          = 2,
 		rusk31               = 1,
 		ushqengineer         = 2,
@@ -283,7 +300,7 @@ elseif (gadget.difficulty == "medium") then
 		gerhqengineer        = 3,
 		gerengineer          = 2,
 		gersdkfz9            = 1,
-		ruscommissar         = 6, --3 for flag capping + 3 for base building
+		ruscommissar         = 5, --2 for flag capping + 3 for base building
 		rusengineer          = 2,
 		rusk31               = 1,
 		ushqengineer         = 3,
