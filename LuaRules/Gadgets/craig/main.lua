@@ -29,6 +29,11 @@ else
 	difficulty = "hard"
 end
 
+-- include configuration
+include("LuaRules/Configs/craig/buildorder.lua")
+include("LuaRules/Gadgets/craig/buildorder.lua")
+
+
 
 if (gadgetHandler:IsSyncedCode()) then
 
@@ -37,6 +42,22 @@ if (gadgetHandler:IsSyncedCode()) then
 --
 --  SYNCED
 --
+
+-- globals
+local unitLimits = {}
+
+-- include code
+include("LuaRules/Gadgets/craig/unitlimits.lua")
+
+function gadget:GamePreload()
+	-- Initialise unit limit for all AI teams.
+	local name = gadget:GetInfo().name
+	for _,t in ipairs(Spring.GetTeamList()) do
+		if Spring.GetTeamLuaAI(t) ==  name then
+			unitLimits[t] = CreateUnitLimitsMgr(t)
+		end
+	end
+end
 
 local function Refill(myTeamID, resource)
 	if (gadget.difficulty ~= "easy") then
@@ -63,6 +84,13 @@ function gadget:GameFrame(f)
 	end
 end
 
+function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z)
+	if unitLimits[builderTeam] then
+		return unitLimits[builderTeam].AllowUnitCreation(unitDefID)
+	end
+	return true
+end
+
 else
 
 --------------------------------------------------------------------------------
@@ -77,11 +105,7 @@ local MY_PLAYER_ID = Spring.GetMyPlayerID()
 -- globals
 waypointMgr = {}
 
--- include configuration
-include("LuaRules/Configs/craig/buildorder.lua")
-
 -- include code
-include("LuaRules/Gadgets/craig/buildorder.lua")
 include("LuaRules/Gadgets/craig/buildsite.lua")
 include("LuaRules/Gadgets/craig/base.lua")
 include("LuaRules/Gadgets/craig/combat.lua")
@@ -237,9 +261,12 @@ function gadget:TeamDied(teamID)
 	--end
 end
 
+-- This is not called by Spring, only the synced version of this function is
+-- called by Spring.  This unsynced version is here to allow the AI itself to
+-- determine whether a unit creation would be allowed.
 function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z)
 	if team[builderTeam] then
-		return team[builderTeam].AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z)
+		return team[builderTeam].AllowUnitCreation(unitDefID)
 	end
 	return true
 end
