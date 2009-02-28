@@ -7,8 +7,8 @@
 
 function gadget:GetInfo()
 	return {
-		name = "C.R.A.I.G.: 1944",
-		desc = "Configurable Reusable Artificial Intelligence Gadget for Spring: 1944",
+		name = "C.R.A.I.G.: SWIW",
+		desc = "Configurable Reusable Artificial Intelligence Gadget for SWIW",
 		author = "Tobi Vollebregt",
 		date = "2009-02-12",
 		license = "GNU General Public License",
