@@ -35,11 +35,11 @@ local GetUnitTeam = Spring.GetUnitTeam
 local flagCappers = gadget.flagCappers
 local waypointMgr = gadget.waypointMgr
 local waypoints = waypointMgr.GetWaypoints()
-local flags = waypointMgr.GetFlags()
 
 -- members
 local units = {}
 local unitCount = 0
+local startpos
 
 --------------------------------------------------------------------------------
 
@@ -48,6 +48,7 @@ local function SendToNearestWaypointWithUncappedFlags(source, unitArray)
 		return (not p:AreAllFlagsCappedByTeam(myTeamID)) and (#p.flags > 0)
 	end)
 	if target then
+		Log("Flag capper found target: ", target.x, ", ", target.z)
 		local cmd = CMD.FIGHT
 		-- HACK: special exception for Russia, cause with fight the commissars will
 		-- only eat all map features and help base building, instead of capping flags.
@@ -67,7 +68,7 @@ end
 --
 
 function FlagsMgr.GameStart()
-	local startpos = waypointMgr.GetTeamStartPosition(myTeamID)
+	startpos = waypointMgr.GetTeamStartPosition(myTeamID)
 	for u,_ in pairs(units) do
 		units[u] = startpos
 		GiveOrderToUnit(u, CMD.MOVE, {startpos.x, startpos.y, startpos.z}, {})
@@ -101,7 +102,7 @@ function FlagsMgr.UnitFinished(unitID, unitDefID, unitTeam)
 
 		if (UnitDefs[unitDefID].speed == 0) then return end
 
-		units[unitID] = waypointMgr.GetTeamStartPosition(myTeamID)
+		units[unitID] = startpos
 		if (not units[unitID]) then
 			Log("No start position!")
 			units[unitID] = true
@@ -109,6 +110,10 @@ function FlagsMgr.UnitFinished(unitID, unitDefID, unitTeam)
 
 		unitCount = unitCount + 1
 		Log("Capping flags using: ", UnitDefs[unitDefID].humanName)
+
+		if (startpos ~= nil) then
+			GiveOrderToUnit(unitID, CMD.MOVE, {startpos.x, startpos.y, startpos.z}, {})
+		end
 
 		return true --signal Team.UnitFinished that we will control this unit
 	end

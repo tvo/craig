@@ -28,7 +28,6 @@ local SQUAD_SPREAD = 250
 -- speedups
 local waypointMgr = gadget.waypointMgr
 local waypoints = waypointMgr.GetWaypoints()
-local flags = waypointMgr.GetFlags()
 
 -- members
 local lastWaypoint = 0
