@@ -50,7 +50,7 @@ do
 end
 
 gadget.baseBuilders = NameArrayToIdSet(gadget.baseBuilders)
-gadget.flags = NameArrayToIdArray(gadget.flags)
+gadget.flags = NameArrayToIdSet(gadget.flags)
 gadget.flagCappers = NameArrayToIdSet(gadget.flagCappers)
 gadget.reservedFlagCappers = gadget.reservedFlagCappers or {}
 

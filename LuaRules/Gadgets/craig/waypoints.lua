@@ -259,6 +259,7 @@ function WaypointMgr.GameFrame(f)
 			local dist = GetDist2D(x, z, p.x, p.z)
 			if (dist < FLAG_RADIUS) then
 				p.flags[#p.flags+1] = u
+				flags[p] = u
 				--Log("Flag ", u, " (", at, ") is near ", p.x, ", ", p.z)
 			end
 		elseif (UnitDefs[ud].speed == 0) and (at ~= GAIA_ALLYTEAM_ID) then
