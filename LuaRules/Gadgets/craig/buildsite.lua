@@ -266,7 +266,7 @@ end
 local function Initialize()
 	for unitDefID=1,#UnitDefs do
 		local unitDef = UnitDefs[unitDefID]
-		if (unitDef.humanName ~= "Flag" and unitDef.speed == 0) then
+		if (not gadget.flags[unitDefID] and unitDef.speed == 0) then
 			local radius = unitDef.customParams.buildrange or DEFAULT_BUILD_RANGE
 			local numSegments = ceil(radius / segmentLength)
 			local segmentAngle = 2 * PI / numSegments
