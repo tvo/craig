@@ -1,21 +1,19 @@
 -- Author: Tobi Vollebregt
 -- License: GNU General Public License v2
 
--- NOTE: this modinfo.lua is only used for developing,
--- the released modinfo.lua is embedded in make_release.sh
-
 local modinfo = {
-	name = "Spring: 1944 SVN + AI",
-	shortName = "S44",
-	game = "Spring 1944",
-	shortGame = "S44",
-	mutator = "AI for Spring: 1944",
-	description = "AI for Spring: 1944",
-	url = "http://www.spring1944.com",
+	name = "Imperial Winter 1.5.051 beta + C.R.A.I.G. (v2.0)",
+	shortname = "SWIW",
+	game = "Star Wars: Imperial Winter",
+	shortgame = "SWIW",
+	mutator = "AI for SWIW",
+	description = "AI for Spring: 1944 hastily bodged into SWIW",
+	url = "www.meatspin.com",
 	modtype = "1",
 	depend = {
-		"Spring: 1944 SVN"
-	},
+		"sws.v051.sdz",
+	}
 }
+
 
 return modinfo
