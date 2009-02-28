@@ -107,6 +107,17 @@ gadget.baseBuilders = {
 	"imp_c_protocon",
 }
 
+-- This lists all the units (of all sides) that may be used to cap flags.
+gadget.flagCappers = {
+	--TODO: add flag cappers
+}
+
+-- Number of units per side used to cap flags.
+gadget.reservedFlagCappers = {
+	["galactic empire"] = 24,
+	--TODO: add other sides
+}
+
 -- Currently I'm only configuring the the unitLimits per difficulty level,
 -- it's easy however to use a similar structure for the buildorders above.
 

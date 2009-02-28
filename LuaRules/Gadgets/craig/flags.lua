@@ -25,14 +25,14 @@ end
 local FlagsMgr = {}
 
 -- constants
-local MINIMUM_FLAG_CAP_RATE = 1  --only units with flagcaprate at least this high are used
-local RESERVED_FLAG_CAPPERS = mySide == "rus" and 10 or 24 --total amount of flagcaprate (in units) claimed by this module
+local RESERVED_FLAG_CAPPERS = gadget.reservedFlagCappers[mySide] or 24
 
 -- speedups
 local DelayedCall = gadget.DelayedCall
 local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitTeam = Spring.GetUnitTeam
 
+local flagCappers = gadget.flagCappers
 local waypointMgr = gadget.waypointMgr
 local waypoints = waypointMgr.GetWaypoints()
 local flags = waypointMgr.GetFlags()
@@ -97,13 +97,9 @@ end
 --
 
 function FlagsMgr.UnitFinished(unitID, unitDefID, unitTeam)
-	if (unitCount < RESERVED_FLAG_CAPPERS) and
-	   ((tonumber(UnitDefs[unitDefID].customParams.flagcaprate or 0)) >= MINIMUM_FLAG_CAP_RATE) then
+	if (unitCount < RESERVED_FLAG_CAPPERS) and (flagCappers[unitDefID] ~= nil) then
 
 		if (UnitDefs[unitDefID].speed == 0) then return end
-
-		-- HACK: special exception for Russian commander...
-		if (UnitDefs[unitDefID].name == "ruscommander") then return end
 
 		units[unitID] = waypointMgr.GetTeamStartPosition(myTeamID)
 		if (not units[unitID]) then
@@ -111,7 +107,7 @@ function FlagsMgr.UnitFinished(unitID, unitDefID, unitTeam)
 			units[unitID] = true
 		end
 
-		unitCount = unitCount + tonumber(UnitDefs[unitDefID].customParams.flagcaprate or 0)
+		unitCount = unitCount + 1
 		Log("Capping flags using: ", UnitDefs[unitDefID].humanName)
 
 		return true --signal Team.UnitFinished that we will control this unit
@@ -121,7 +117,7 @@ end
 function FlagsMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	if units[unitID] then
 		units[unitID] = nil
-		unitCount = unitCount - tonumber(UnitDefs[unitDefID].customParams.flagcaprate or 0)
+		unitCount = unitCount - 1
 		Log("Flag capper destroyed.")
 	end
 end
