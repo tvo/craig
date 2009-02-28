@@ -118,6 +118,11 @@ gadget.flags = {
 	"reb_p_flagecon1",
 }
 
+-- This lists all the units that should be considered flags.
+gadget.flags = {
+	"flag",
+}
+
 -- This lists all the units (of all sides) that may be used to cap flags.
 gadget.flagCappers = {
 	--TODO: add flag cappers
