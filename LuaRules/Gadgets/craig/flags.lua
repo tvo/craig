@@ -26,7 +26,7 @@ local FlagsMgr = {}
 
 -- constants
 local MINIMUM_FLAG_CAP_RATE = 1  --only units with flagcaprate at least this high are used
-local RESERVED_FLAG_CAPPERS = 12 --total amount of flagcaprate (in units) claimed by this module
+local RESERVED_FLAG_CAPPERS = mySide == "rus" and 10 or 24 --total amount of flagcaprate (in units) claimed by this module
 
 -- speedups
 local DelayedCall = gadget.DelayedCall
@@ -70,7 +70,7 @@ function FlagsMgr.GameStart()
 	local startpos = waypointMgr.GetTeamStartPosition(myTeamID)
 	for u,_ in pairs(units) do
 		units[u] = startpos
-		Spring.GiveOrderToUnit(u, CMD.MOVE, {startpos.x, startpos.y, startpos.z}, {})
+		GiveOrderToUnit(u, CMD.MOVE, {startpos.x, startpos.y, startpos.z}, {})
 	end
 end
 

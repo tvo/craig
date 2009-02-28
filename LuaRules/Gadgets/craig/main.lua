@@ -2,6 +2,7 @@
 -- License: GNU General Public License v2
 
 -- Slightly based on the Kernel Panic AI by KDR_11k (David Becker) and zwzsg.
+-- Thanks to lurker for providing hints on how to make the AI run unsynced.
 
 -- In-game, type /luarules craig in the console to toggle the ai debug messages
 
@@ -15,43 +16,66 @@ function gadget:GetInfo()
   		layer = 82,
 		enabled = true
 	}
+
 end
 
-do
--- If not in synced code, ask for a quiet death.
--- (Tried to make the AI unsynced one time but I seem to get no
---  Unit events then so it's pointless... (no errors either))
-if (not gadgetHandler:IsSyncedCode()) then
-	return false
-end
 
--- If no AIs are in the game, ask for a quiet death.
-local function CountBots()
-	local count = 0
-	for _,t in ipairs(Spring.GetTeamList()) do
-		if Spring.GetTeamLuaAI(t) == gadget:GetInfo().name then
-			count = count + 1
-		end
-	end
-	return count
-end
-
-if CountBots() == 0 then
-	return false
-end
-end
-
---------------------------------------------------------------------------------
-
--- globals
-waypointMgr = {}
-
+-- Read mod options, we need this in both synced and unsynced code!
 if (Spring.GetModOptions) then
 	local modOptions = Spring.GetModOptions()
-	difficulty = (modOptions.craig_difficulty or "hard")
+	local lookup = {"easy", "medium", "hard"}
+	difficulty = lookup[tonumber(modOptions.craig_difficulty) or 2]
 else
 	difficulty = "hard"
 end
+
+
+if (gadgetHandler:IsSyncedCode()) then
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--
+--  SYNCED
+--
+
+local function Refill(myTeamID, resource)
+	if (gadget.difficulty ~= "easy") then
+		local value,storage = Spring.GetTeamResources(myTeamID, resource)
+		if (gadget.difficulty ~= "medium") then
+			-- hard: full refill
+			Spring.AddTeamResource(myTeamID, resource, storage - value)
+		else
+			-- medium: partial refill
+			-- 1000 storage / 128 * 30 = approx. +234
+			-- this means 100% cheat is bonus of +234 metal at 1k storage
+			Spring.AddTeamResource(myTeamID, resource, (storage - value) * 0.05)
+		end
+	end
+end
+
+function gadget:GameFrame(f)
+	-- Perform economy cheating, this must be done in synced code!
+	if f % 128 < 0.1 then
+		for t,_ in pairs(team) do
+			Refill(t, "metal")
+			Refill(t, "energy")
+		end
+	end
+end
+
+else
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--
+--  UNSYNCED
+--
+
+--constants
+local MY_PLAYER_ID = Spring.GetMyPlayerID()
+
+-- globals
+waypointMgr = {}
 
 -- include configuration
 include("LuaRules/Configs/craig/buildorder.lua")
@@ -97,7 +121,7 @@ local function SetupCmdChangeAIDebugVerbosity()
 	func = ChangeAIDebugVerbosity
 	help = " [0|1]: make C.R.A.I.G. shut up or fill your infolog"
 	gadgetHandler:AddChatAction(cmd,func,help)
-	Script.AddActionFallback(cmd .. ' ',help)
+	--Script.AddActionFallback(cmd .. ' ',help)
 end
 
 function gadget.Log(...)
@@ -143,6 +167,7 @@ function gadget:Initialize()
 	SetupCmdChangeAIDebugVerbosity()
 end
 
+
 function gadget:GamePreload()
 	-- This is executed BEFORE headquarters / commander is spawned
 	Log("gadget:GamePreload")
@@ -152,10 +177,13 @@ function gadget:GamePreload()
 		waypointMgrGameFrameRate = waypointMgr.GetGameFrameRate()
 	end
 	-- Initialise AI for all team that are set to use it
+	local name = gadget:GetInfo().name
 	for _,t in ipairs(Spring.GetTeamList()) do
-		if Spring.GetTeamLuaAI(t) == gadget:GetInfo().name then
-			local _,_,_,_,side,at = Spring.GetTeamInfo(t)
-			team[t] = CreateTeam(t, at, side)
+		if Spring.GetTeamLuaAI(t) ==  name then
+			local _,leader,_,_,side,at = Spring.GetTeamInfo(t)
+			if (leader == MY_PLAYER_ID) then
+				team[t] = CreateTeam(t, at, side)
+			end
 		end
 	end
 end
@@ -262,3 +290,21 @@ function gadget:UnitIdle(unitID, unitDefID, unitTeam)
 		team[unitTeam].UnitIdle(unitID, unitDefID, unitTeam)
 	end
 end
+
+end
+
+
+-- Set up LUA AI framework.
+callInList = {
+	"GamePreload",
+	"GameStart",
+	"GameFrame",
+	"TeamDied",
+	"UnitCreated",
+	"UnitFinished",
+	"UnitDestroyed",
+	"UnitTaken",
+	"UnitGiven",
+	"UnitIdle",
+}
+return include("LuaRules/Gadgets/craig/framework.lua")
