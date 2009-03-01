@@ -173,7 +173,6 @@ gadget.unitBuildOrder = {
 -- Format: side = { "unit to build 1", "unit to build 2", ... }
 gadget.baseBuildOrder = {
 	["galactic empire"] = {
-		-- I used storages basically to delay tech up a bit :P Making GBR the easy faction to play against.
 		"imp_b_barracks", "imp_p_solar", "imp_p_solar",
 		"imp_p_solar", "imp_b_barracks", "imp_p_solar",
 		"imp_b_vehicleplant", "imp_p_solar", "imp_p_solar",
@@ -228,7 +227,6 @@ gadget.flags = {
 
 -- This lists all the units (of all sides) that may be used to cap flags.
 gadget.flagCappers = {
-	--TODO: add flag cappers
 	"imp_i_scouttrooper",
 	"imp_i_reptrooper",
 	"imp_i_stormtrooper",
@@ -244,7 +242,6 @@ gadget.flagCappers = {
 gadget.reservedFlagCappers = {
 	["galactic empire"] = 18,
 	["rebel alliance"] = 18
-	--TODO: add other sides
 }
 
 -- Currently I'm only configuring the the unitLimits per difficulty level,
