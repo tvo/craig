@@ -10,13 +10,13 @@ mkdir .tmp
 cp -r * .tmp/
 rm -rf .tmp/mutator.zip .tmp/mutator.sdz .tmp/tools/
 
-# Generate modinfo.lua for Operation Konstantin (v0.92)
+# Generate modinfo.lua for Star Wars: Imperial Winter 1.5.051 beta
 cat > .tmp/modinfo.lua << EOD
 -- Author: Tobi Vollebregt
 -- License: GNU General Public License v2
 
 local modinfo = {
-	name = "Imperial Winter 1.5.051 beta + C.R.A.I.G. (v2.4 alpha)",
+	name = "Imperial Winter 1.5.051 beta + C.R.A.I.G. (v2.5 alpha)",
 	shortname = "SWIW",
 	game = "Star Wars: Imperial Winter",
 	shortgame = "SWIW",
