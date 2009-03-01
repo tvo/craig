@@ -359,7 +359,7 @@ function widget.FindBuildsite(builderID, unitDefID, closest)
 	for _=1,10 do
 		local tx = x + math.random(-range, range)
 		local tz = z + math.random(-range, range)
-		if TestBuildOrder(unitDefID, tx,y,tz, facing) > 0 then
+		if TestBuildOrder(unitDefID, tx,y,tz, facing) == 2 then
 			return tx,y,tz,facing
 		end
 		range = range * 1.5
