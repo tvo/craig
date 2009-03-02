@@ -16,7 +16,6 @@ function gadget:GetInfo()
   		layer = 82,
 		enabled = true
 	}
-
 end
 
 
