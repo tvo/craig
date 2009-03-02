@@ -3,8 +3,8 @@
 
 local bots = {
 	{
-		name = "C.R.A.I.G.: SWIW",
-		desc = "Configurable Reusable Artificial Intelligence Gadget for SWIW",
+		name = "C.R.A.I.G.",
+		desc = "Configurable Reusable Artificial Intelligence Gadget",
 	},
 }
 
