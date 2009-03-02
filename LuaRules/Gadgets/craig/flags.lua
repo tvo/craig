@@ -45,7 +45,7 @@ local startpos
 
 local function SendToNearestWaypointWithUncappedFlags(source, unitArray)
 	local previous, target = PathFinder.Dijkstra(waypoints, source, {}, function(p)
-		return (not p:AreAllFlagsCappedByTeam(myTeamID)) and (#p.flags > 0)
+		return (not p:AreAllFlagsCappedByAllyTeam(myAllyTeamID)) and (#p.flags > 0)
 	end)
 	if target then
 		Log("Flag capper found target: ", target.x, ", ", target.z)
@@ -85,7 +85,7 @@ function FlagsMgr.GameFrame(f)
 	end
 	-- give each such squad new orders if the flags near it's destination are capped
 	for p,unitArray in pairs(squads) do
-		if p:AreAllFlagsCappedByTeam(myTeamID) then
+		if p:AreAllFlagsCappedByAllyTeam(myAllyTeamID) then
 			Log("All flags capped near: ", p.x, ", ", p.z)
 			SendToNearestWaypointWithUncappedFlags(p, unitArray)
 		end

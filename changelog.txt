@@ -13,6 +13,7 @@ v2.0 -> v3.0
 * AI difficulty modoption uses numeric keys now, fixes it in TASClient.
 * Reduced cheating at medium from 6% to 5%.
 * Made bot name (as shown in the lobby) mod-agnostic, to ease maintenance.
+* Doesn't try to cap allied flags anymore.
 * Spring: 1944 specific changes:
   - Increased number of flag cappers from 12 to 24 for GBR, GER and US.
   - Decreased number of flag cappers from 3 to 2 for Russia.
