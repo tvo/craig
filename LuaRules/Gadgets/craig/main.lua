@@ -46,7 +46,6 @@ if (math.randomseed ~= nil) then
 	--Spring.Echo("C.R.A.I.G.: Seeding random number generator: " .. r)
 	math.random()      -- first random() call calls randomseed(1) internally
 	math.randomseed(r) -- hack until spring seeds it itself
-	math.randomseed(r) -- have to do it twice for some reason
 end
 
 
