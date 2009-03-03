@@ -15,7 +15,6 @@ function WaypointMgr.UnitCreated(unitID, unitDefID, unitTeam, builderID)
 
 function WaypointMgr.GetGameFrameRate()
 function WaypointMgr.GetWaypoints()
-function WaypointMgr.GetFlags()
 function WaypointMgr.GetTeamStartPosition(myTeamID)
 function WaypointMgr.GetFrontline(myTeamID, myAllyTeamID)
 	Returns frontline, previous. Frontline is the set of waypoints adjacent
@@ -184,9 +183,9 @@ function Waypoint:GetEnemyUnitCount(myAllyTeamID)
 	return sum
 end
 
-function Waypoint:AreAllFlagsCappedByTeam(myTeamID)
+function Waypoint:AreAllFlagsCappedByAllyTeam(myAllyTeamID)
 	for _,f in pairs(self.flags) do
-		if (GetUnitTeam(f) ~= myTeamID) then
+		if (GetUnitAllyTeam(f) ~= myAllyTeamID) then
 			return false
 		end
 	end
