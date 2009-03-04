@@ -51,8 +51,8 @@ gadget.flagCappers = {
 
 -- Number of units per side used to cap flags.
 gadget.reservedFlagCappers = {
-	["galactic empire"] = 18,
-	["rebel alliance"] = 18
+	["galactic empire"] = 10,
+	["rebel alliance"] = 10
 }
 
 -- Currently I'm only configuring the the unitLimits per difficulty level,
