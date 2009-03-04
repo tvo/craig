@@ -184,9 +184,9 @@ gadget.baseBuildOrder = {
 		"imp_b_barracks", "imp_d_antiair", "imp_p_fusion",
 	},
 	["rebel alliance"] = {
+		"reb_b_barracks", "reb_p_fusion", "reb_p_fusion",
 		"reb_b_barracks", "reb_p_fusion", "reb_b_barracks",
-		"reb_p_fusion", "reb_b_barracks", "reb_p_fusion",
-		"reb_is_sniper",  "reb_is_sniper", "reb_is_heavy",
+		"reb_is_sniper",  "reb_p_fusion", "reb_is_heavy",
 		"reb_b_repulsorliftplant", "reb_p_fusion", "reb_is_sniper",
 		"reb_b_repulsorliftplant", "reb_p_fusion", "reb_p_fusion",
 		"reb_is_sniper", "reb_p_fusion", "reb_b_barracks",
