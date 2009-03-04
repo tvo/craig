@@ -20,12 +20,18 @@ v2.0 -> v3.0
     (because it can not properly handle the combined builders/flagcappers yet)
   - Based ModOptions.lua on the one from Operation Konstantin, instead of SVN.
 * Star Wars Imperial Winter (SWIW) support, big thanks to [RoX]1v0ry_k1ng!
-  - Both Rebel Alliance and Imperial Remmnants buildorders.
+  - Three different buildorders for both Rebel Alliance and Imperial Remmnants.
   - Support for SWIW style flag capping (ie. flags swapped out using LUA).
   - The specific unit types used to to cap flags are now configurable.
   - Does not use NoSelect units (e.g. Royal Guards) anymore to attack.
   - Fixed Rebel Alliance commander base building bootstrap.
     (It tried to build on top of itself and then didn't move away.)
+* Added waypoint profiles for:  (credits to [RoX]1v0ry_k1ng too)
+  - ArcticPlainsV2.smf.lua
+  - Eye_Of_Horus.smf.lua
+  - TitanDuel.smf.lua
+  - Tundra.smf.lua
+  - Xelric_Draw_beta2.smf.lua
 
 v1.5 -> v2.0
 ============
