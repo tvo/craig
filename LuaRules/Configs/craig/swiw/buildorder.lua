@@ -1,6 +1,10 @@
 -- Author: Tobi Vollebregt
 -- License: GNU General Public License v2
 
+-- Misc config
+FLAG_RADIUS = 160 --from SWIW antiflag weapon
+SQUAD_SIZE = 10
+
 -- unit names must be lowercase!
 
 -- Pick one out of three buildorders at random.
