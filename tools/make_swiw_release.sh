@@ -33,7 +33,7 @@ return modinfo
 EOD
 
 # Add our ModOptions to the official mod's modoptions.
-unzip -p ../S44Konstantin_v092.sdz ModOptions.lua |
+unzip -p ../sws.v051.sdz ModOptions.lua |
 	tools/lua5.1 tools/make_modoptions.lua > .tmp/ModOptions.lua
 
 # Disable debugging.

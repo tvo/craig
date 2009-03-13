@@ -32,6 +32,10 @@ local modinfo = {
 return modinfo
 EOD
 
+# Add our ModOptions to the official mod's modoptions.
+unzip -p ../S44Konstantin_v092.sdz ModOptions.lua |
+	tools/lua5.1 tools/make_modoptions.lua > .tmp/ModOptions.lua
+
 # Disable debugging.
 sed -i 's/^local CRAIG_Debug_Mode = 1/local CRAIG_Debug_Mode = 0/g' \
 	.tmp/LuaRules/Gadgets/craig/main.lua
