@@ -8,13 +8,13 @@ if (not gadgetHandler:IsSyncedCode()) then
 	local r = math.random()
 	if (r < 0.333333) then
 		--Spring.Echo("C.R.A.I.G.: Taking buildorder variant A")
-		include("LuaRules/Configs/craig/buildorder.swiw.1.lua")
+		include("LuaRules/Configs/craig/swiw/buildorder.1.lua")
 	elseif (r < 0.666667) then
 		--Spring.Echo("C.R.A.I.G.: Taking buildorder variant B")
-		include("LuaRules/Configs/craig/buildorder.swiw.2.lua")
+		include("LuaRules/Configs/craig/swiw/buildorder.2.lua")
 	else
 		--Spring.Echo("C.R.A.I.G.: Taking buildorder variant C")
-		include("LuaRules/Configs/craig/buildorder.swiw.3.lua")
+		include("LuaRules/Configs/craig/swiw/buildorder.3.lua")
 	end
 else
 	gadget.unitBuildOrder = {}
