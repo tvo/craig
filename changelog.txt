@@ -1,3 +1,29 @@
+v3.0 -> v3.1
+============
+* Using exactly same code for SWIW and S44 now.
+  - Squad size is now configurable.
+  - Flag radius is now configurable.
+  - Moved config in a directory with modShortName as name ('s44', 'swiw')
+* Added waypoint profiles for:  (credits to Lowdive and hrmph!)
+  - Aberdeen3v3v3
+  - AfterShock_V31
+  - Battle for PlanetXVII-v01
+  - Comet Catcher Redux
+  - Crossing_4_final
+  - DeltaSiegeDry
+  - DesertTriad
+  - Deserted_Gully-v05
+  - FrostBiteV2
+  - GRTS_River_Valley_1.4
+  - Geyser_Plains_TNM04-V3
+  - Glass_Dreams-v01
+  - River Dale-v01
+  - Sierra-v2
+  - Tangerine
+  - TheHunters-v3
+  - neurope_a7
+  - rysia
+
 v2.0 -> v3.0
 ============
 * Major technical change: the AI now runs as unsynced code.
@@ -27,11 +53,11 @@ v2.0 -> v3.0
   - Fixed Rebel Alliance commander base building bootstrap.
     (It tried to build on top of itself and then didn't move away.)
 * Added waypoint profiles for:  (credits to [RoX]1v0ry_k1ng too)
-  - ArcticPlainsV2.smf.lua
-  - Eye_Of_Horus.smf.lua
-  - TitanDuel.smf.lua
-  - Tundra.smf.lua
-  - Xelric_Draw_beta2.smf.lua
+  - ArcticPlainsV2
+  - Eye_Of_Horus
+  - TitanDuel
+  - Tundra
+  - Xelric_Draw_beta2
 
 v1.5 -> v2.0
 ============
