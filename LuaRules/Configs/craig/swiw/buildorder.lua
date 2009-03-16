@@ -8,7 +8,7 @@ SQUAD_SIZE = 10
 -- unit names must be lowercase!
 
 -- Pick one out of three buildorders at random.
-if (not gadgetHandler:IsSyncedCode()) then
+do
 	local r = math.random()
 	if (r < 0.333333) then
 		--Spring.Echo("C.R.A.I.G.: Taking buildorder variant A")

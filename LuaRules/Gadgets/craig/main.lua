@@ -48,47 +48,9 @@ if (math.randomseed ~= nil) then
 	math.randomseed(r) -- hack until spring seeds it itself
 end
 
---------------------------------------------------------------------------------
-
-local function NameToID(name)
-	local unitDef = UnitDefNames[name]
-	if unitDef then
-		return unitDef.id
-	else
-		error("Bad unitname: " .. name)
-	end
-end
-
-function UnitArray(t)
-	local newArray = {}
-	for i,name in ipairs(t) do
-		newArray[i] = NameToID(name)
-	end
-	return newArray
-end
-
-function UnitSet(t)
-	local newSet = {}
-	for i,name in ipairs(t) do
-		newSet[NameToID(name)] = true
-	end
-	return newSet
-end
-
-function UnitBag(t)
-	local newBag = {}
-	for k,v in pairs(t) do
-		newBag[NameToID(k)] = v
-	end
-	return newBag
-end
-
---------------------------------------------------------------------------------
 
 -- include configuration
-include("LuaRules/Configs/craig/" .. Game.modShortName .. "/buildorder.lua")
-include("LuaRules/Configs/craig/" .. Game.modShortName .. "/unitlimits.lua")
-
+include("LuaRules/Configs/craig/config.lua")
 
 
 if (gadgetHandler:IsSyncedCode()) then
