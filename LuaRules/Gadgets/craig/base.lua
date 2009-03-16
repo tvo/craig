@@ -44,14 +44,12 @@ local currentBuildID        -- one unitID
 local currentBuilder        -- one unitID
 local bUseClosestBuildSite = true
 
--- does not modify sim; is called from outside GameFrame
 local function BuildBaseFinished()
 	currentBuildDefID = nil
 	currentBuildID = nil
 	currentBuilder = nil
 end
 
--- does not modify sim; is called from outside GameFrame
 local function BuildBaseInterrupted()
 	-- enforce randomized next buildsite, instead of
 	-- hopelessly trying again and again on same place
@@ -60,7 +58,6 @@ local function BuildBaseInterrupted()
 	return BuildBaseFinished()
 end
 
--- modifies sim, only call this in GameFrame! (or use DelayedCall)
 local function BuildBase()
 	if currentBuildDefID then
 		if #(Spring.GetUnitCommands(currentBuilder, 1) or {}) == 0 then
@@ -186,9 +183,7 @@ function BaseMgr.UnitFinished(unitID, unitDefID, unitTeam)
 		end
 		-- give the builder a guard order on current builder
 		if currentBuilder then
-			DelayedCall(unitID, function()
-				GiveOrderToUnit(unitID, CMD.GUARD, {currentBuilder}, {})
-			end)
+			GiveOrderToUnit(unitID, CMD.GUARD, {currentBuilder}, {})
 		end
 		return true --signal Team.UnitFinished that we will control this unit
 	end
