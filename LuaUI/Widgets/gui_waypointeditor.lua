@@ -177,6 +177,29 @@ end
 
 
 
+local function GetDist(x, y, p, q)
+	local dx = x - p
+	local dy = y - q
+	return sqrt(dx * dx + dy * dy)
+end
+
+local function FindWaypoint(mx, my)
+	local _, coors = TraceScreenRay(mx, my, true)
+	if (coors ~= nil) then
+		local p, r = coors[1], coors[3]
+		for _, waypoint in pairs(waypoints) do
+			local x, z = waypoint[1], waypoint[3]
+			local d = GetDist(x, z, p, r)
+			if (d < 64) then
+				return waypoint
+			end
+		end
+	end
+	return nil
+end
+
+
+
 function widget:KeyPress(key, modifier, isRepeat)
 	if (modifier.shift) then
 		shiftPressed = true
@@ -197,15 +220,21 @@ function widget:KeyPress(key, modifier, isRepeat)
 	end
 	if (key == 109) then
 		-- delete waypoint 'M'
-		if (selectedWaypoint ~= nil) then
+		local mx, my, _, _, _ = GetMouseState()
+		local mouseOverWaypoint = FindWaypoint(mx, my)
+		if (mouseOverWaypoint ~= nil) then
 			for k,v in pairs(connections) do
-				if (v[1] == selectedWaypoint) or (v[2] == selectedWaypoint) then
+				if (v[1] == mouseOverWaypoint) or (v[2] == mouseOverWaypoint) then
 					connections[k] = nil
 				end
 			end
-			waypoints[selectedWaypoint.id] = nil
-			selectedWaypoint = nil
-			selectedTargetWaypoint = nil
+			waypoints[mouseOverWaypoint.id] = nil
+			if (selectedWaypoint == mouseOverWaypoint) then
+				selectedWaypoint = nil
+				selectedTargetWaypoint = nil
+			elseif (selectedTargetWaypoint == mouseOverWaypoint) then
+				selectedTargetWaypoint = nil
+			end
 		end
 	end
 	if (key == 115) then
@@ -234,14 +263,6 @@ end
 
 
 
-function GetDist(x, y, p, q)
-	local dx = x - p
-	local dy = y - q
-	return sqrt(dx * dx + dy * dy)
-end
-
-
-
 function UpdateWaypoint(mx, my)
 	local _, coors = TraceScreenRay(mx, my, true)
 	local dict = {}
@@ -263,21 +284,6 @@ local function MouseReleased(mx, my)
 	UpdateWaypoint(mx, my)
 end
 
-
-local function FindWaypoint(mx, my)
-	local _, coors = TraceScreenRay(mx, my, true)
-	if (coors ~= nil) then
-		local p, r = coors[1], coors[3]
-		for _, waypoint in pairs(waypoints) do
-			local x, z = waypoint[1], waypoint[3]
-			local d = GetDist(x, z, p, r)
-			if (d < 64) then
-				return waypoint
-			end
-		end
-	end
-	return nil
-end
 
 
 function widget:Update(_)
