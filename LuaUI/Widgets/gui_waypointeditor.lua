@@ -12,7 +12,6 @@ L - (Re)load waypoint data, THIS DISCARDS THE WAYPOINTS IN MEMORY!
 S - Save waypoint data
 
 Load & save are automatically performed on Initialize / Shutdown.
-Up to 200 waypoints supported.
 ]]--
 
 local GetGameSeconds = Spring.GetGameSeconds
@@ -179,7 +178,7 @@ function widget:KeyPress(key, modifier, isRepeat)
 	end
 	if (key == 110) then
 		-- new waypoint 'N'
-		local mx, my, lmb, _, _ = GetMouseState()
+		local mx, my, _, _, _ = GetMouseState()
 		local _, coors = TraceScreenRay(mx, my, true)
 		if (coors ~= nil) then
 			AddWaypoint(unpack(coors))
@@ -255,13 +254,15 @@ end
 
 
 local function FindWaypoint(mx, my)
-	for _, waypoint in pairs(waypoints) do
-		local x, y, z = waypoint[1], waypoint[2], waypoint[3]
-		local p, q = WorldToScreenCoords(x, y, z)
-		local d = GetDist(mx, my, p, q)
-
-		if (d < 64) then
-			return waypoint
+	local _, coors = TraceScreenRay(mx, my, true)
+	if (coors ~= nil) then
+		local p, r = coors[1], coors[3]
+		for _, waypoint in pairs(waypoints) do
+			local x, z = waypoint[1], waypoint[3]
+			local d = GetDist(x, z, p, r)
+			if (d < 64) then
+				return waypoint
+			end
 		end
 	end
 	return nil
@@ -312,13 +313,12 @@ function widget:DrawWorld()
 		)
 	end
 
+	local mouseOverWaypoint = FindWaypoint(mx, my)
+
 	for _, waypoint in pairs(waypoints) do
 		local x, y, z = waypoint[1], waypoint[2], waypoint[3]
-		local p, q = WorldToScreenCoords(x, y, z)
-		local d = GetDist(mx, my, p, q)
-		local commandID = waypoint[5]
 
-		if (d < 64) or (waypoint == selectedWaypoint) or (waypoint == selectedTargetWaypoint) then
+		if (waypoint == mouseOverWaypoint) or (waypoint == selectedWaypoint) or (waypoint == selectedTargetWaypoint) then
 			glColor(1.0, 1.0, 1.0, 1.0)
 			glLineWidth(3.0)
 			glDrawGroundCircle(x, y, z, 64, 16)
