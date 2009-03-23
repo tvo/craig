@@ -58,8 +58,6 @@ local function AddWaypoint(x, y, z)
 	return waypoints[lastWaypointID]
 end
 
-
-
 local function ToggleConnection(a, b)
 	if (a.id > b.id) then a,b = b,a end
 	local key = 4096 * a.id + b.id
@@ -69,7 +67,6 @@ local function ToggleConnection(a, b)
 		connections[key] = { a, b }
 	end
 end
-
 
 local function AddConnection(a, b)
 	if (a.id > b.id) then a,b = b,a end
@@ -124,21 +121,35 @@ local function Save()
 	Spring.Echo("Saved to: " .. fname)
 end
 
-local function Load()
-	-- load chunk
-	local fname = "craig_maps/" .. Game.mapName .. ".lua"
-	local chunk,err = loadfile(fname)
-	if (not chunk) then
-		Spring.Echo(err)
-		return
+local function LoadChunk()
+	local filenames = {
+		"craig_maps/" .. Game.mapName .. ".lua",
+		"LuaRules/Configs/craig/maps/" .. Game.mapName .. ".lua",
+	}
+	for _,fname in ipairs(filenames) do
+		local text = VFS.LoadFile(fname)
+		if text then
+			local chunk,err = loadstring(text, fname)
+			if chunk then
+				return chunk,fname
+			else
+				Spring.Echo(err)
+			end
+		end
 	end
+	return nil
+end
+
+local function Load()
+	local chunk,fname = LoadChunk()
+	if (not chunk) then return end
 	-- clear any existing data
 	lastWaypointID = 0
 	waypoints = {}
 	connections = {}
 	-- execute chunk
 	setfenv(chunk, {AddWaypoint = AddWaypoint, AddConnection = AddConnection})
-	local data = chunk()
+	chunk()
 	Spring.Echo("Loaded from: " .. fname)
 end
 
