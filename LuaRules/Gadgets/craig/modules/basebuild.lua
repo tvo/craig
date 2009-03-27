@@ -13,19 +13,19 @@ Possible improvements:
 
 --------------------------------------------------------------------------------
 local function CreateModule(team)
-local BaseMgr = {}
+local Mod = {}
 
 -- constants
-local myTeamID = team.myTeamID
-local mySide = team.mySide
+local MY_TEAM_ID = team.myTeamID
+local MY_SIDE = team.mySide
 
 -- speedups
 local GetUnitDefID = Spring.GetUnitDefID
 local Log = team.Log
 
 -- Base building (one global buildOrder)
-local buildsiteFinder = CreateBuildsiteFinder(myTeamID)
-local baseBuildOrder = gadget.baseBuildOrder[mySide]
+local buildsiteFinder = CreateBuildsiteFinder(MY_TEAM_ID)
+local baseBuildOrder = gadget.baseBuildOrder[MY_SIDE]
 local baseBuildIndex = 0
 local baseBuilders = gadget.baseBuilders -- set of all unitDefIDs which are base builders
 local myBaseBuilders = {}   -- set of all unitIDs which are the base builders of the team
@@ -68,9 +68,9 @@ local function BuildBase()
 		unitDefID = baseBuildOrder[newIndex]
 	until (newIndex == baseBuildIndex) or
 		-- check if Spring would block this build (unit restriction)
-		((Spring.GetTeamUnitDefCount(myTeamID, unitDefID) or 0) < UnitDefs[unitDefID].maxThisUnit and
+		((Spring.GetTeamUnitDefCount(MY_TEAM_ID, unitDefID) or 0) < UnitDefs[unitDefID].maxThisUnit and
 		-- check if some part of the AI would block this build
-		gadget:AllowUnitCreation(unitDefID, nil, myTeamID))
+		gadget:AllowUnitCreation(unitDefID, nil, MY_TEAM_ID))
 
 	local builderDefID = baseBuildOptions[unitDefID]
 	-- nothing to do if we have no builders available yet who can build this
@@ -121,12 +121,12 @@ end
 --  The call-in routines
 --
 
-function BaseMgr.GameFrame(f)
+function Mod.GameFrame(f)
 	-- update baseBuildOptions
 	if baseBuildOptionsDirty then
 		baseBuildOptionsDirty = false
 		baseBuildOptions = {}
-		local unitCounts = Spring.GetTeamUnitsCounts(myTeamID)
+		local unitCounts = Spring.GetTeamUnitsCounts(MY_TEAM_ID)
 		for ud,_ in pairs(baseBuilders) do
 			if unitCounts[ud] and unitCounts[ud] > 0 then
 				Log(unitCounts[ud], " x ", UnitDefs[ud].humanName)
@@ -148,7 +148,7 @@ end
 --  Unit call-ins
 --
 
-function BaseMgr.UnitCreated(unitID, unitDefID, unitTeam, builderID)
+function Mod.UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	buildsiteFinder.UnitCreated(unitID, unitDefID, unitTeam)
 
 	if (not currentBuildID) and (unitDefID == currentBuildDefID) and (builderID == currentBuilder) then
@@ -156,7 +156,7 @@ function BaseMgr.UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
 end
 
-function BaseMgr.UnitFinished(unitID, unitDefID, unitTeam)
+function Mod.UnitFinished(unitID, unitDefID, unitTeam)
 	if (unitDefID == currentBuildDefID) and ((not currentBuildID) or (unitID == currentBuildID)) then
 		Log("CurrentBuild finished")
 		BuildBaseFinished()
@@ -181,7 +181,7 @@ function BaseMgr.UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
-function BaseMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+function Mod.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	buildsiteFinder.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 
 	-- update baseBuildOptions
@@ -207,10 +207,10 @@ end
 --
 
 if not baseBuildOrder then
-	error("C.R.A.I.G. is not configured properly to play as " .. mySide)
+	error("C.R.A.I.G. is not configured properly to play as " .. MY_SIDE)
 end
 
-return BaseMgr
+return Mod
 end
 
 --------------------------------------------------------------------------------
