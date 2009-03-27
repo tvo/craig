@@ -69,9 +69,7 @@ function Mod.UnitFinished(unitID, unitDefID, unitTeam)
 				if idx > enemyBaseCount then idx = 1 end
 			end
 		end
-		return true
 	end
-	return false
 end
 
 --------------------------------------------------------------------------------

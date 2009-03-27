@@ -30,9 +30,7 @@ function Mod.UnitFinished(unitID, unitDefID, unitTeam)
 				GiveOrderToUnit(unitID, -bo, {}, {})
 			end
 		end
-		return true
 	end
-	return false
 end
 
 --------------------------------------------------------------------------------
