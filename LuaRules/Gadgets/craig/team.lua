@@ -32,9 +32,6 @@ local Log = Team.Log
 -- constants
 local GAIA_TEAM_ID = Spring.GetGaiaTeamID()
 
--- Base building (one global buildOrder)
-local baseMgr = CreateBaseMgr(myTeamID, myAllyTeamID, mySide, Log)
-
 -- Unit building (one buildOrder per factory)
 local unitBuildOrder = gadget.unitBuildOrder
 
@@ -70,9 +67,6 @@ end
 
 function Team.GameFrame(f)
 	--Log("GameFrame")
-
-	-- TODO: base building module
-	baseMgr.GameFrame(f)
 
 	-- TODO: waypoint module
 	if waypointMgr then
@@ -120,8 +114,6 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 		if flagsMgr.UnitFinished(unitID, unitDefID, unitTeam) then return end
 	end
 
-	if baseMgr.UnitFinished(unitID, unitDefID, unitTeam) then return end
-
 	if waypointMgr then
 		if combatMgr.UnitFinished(unitID, unitDefID, unitTeam) then return end
 	end
@@ -129,9 +121,6 @@ end
 
 function Team.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	Log("UnitDestroyed: ", UnitDefs[unitDefID].humanName)
-
-	-- TODO: base building module
-	baseMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 
 	-- TODO: flag capping module (squads), combat module
 	if waypointMgr then
