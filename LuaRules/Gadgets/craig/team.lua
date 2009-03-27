@@ -32,11 +32,6 @@ local Log = Team.Log
 -- constants
 local GAIA_TEAM_ID = Spring.GetGaiaTeamID()
 
--- Enemy start positions (assumes this are base positions)
-local enemyBases = {}
-local enemyBaseCount = 0
-local enemyBaseLastAttacked = 0
-
 -- Base building (one global buildOrder)
 local baseMgr = CreateBaseMgr(myTeamID, myAllyTeamID, mySide, Log)
 
@@ -62,31 +57,24 @@ local flagsMgr = CreateFlagsMgr(myTeamID, myAllyTeamID, mySide, Log)
 
 function Team.GameStart()
 	Log("GameStart")
-	-- Can not run this in the initialization code at the end of this file,
-	-- because at that time Spring.GetTeamStartPosition seems to always return 0,0,0.
-	for _,t in ipairs(Spring.GetTeamList()) do
-		if (t ~= GAIA_TEAM_ID) and (not Spring.AreTeamsAllied(myTeamID, t)) then
-			local x,y,z = Spring.GetTeamStartPosition(t)
-			if x and x ~= 0 then
-				enemyBaseCount = enemyBaseCount + 1
-				enemyBases[enemyBaseCount] = {x,y,z}
-				Log("Enemy base spotted at coordinates: ", x, ", ", z)
-			else
-				Log("Oops, Spring.GetTeamStartPosition failed")
-			end
-		end
-	end
+
+	-- TODO: somehow instantiate modules
+	-- TODO: initialize modules
+	-- TODO: all this could use some sort of ... "gadget^H^H^H^H^H^HmoduleHandler"?
+
+	-- TODO: waypoint module
 	if waypointMgr then
 		flagsMgr.GameStart()
 	end
-	Log("Preparing to attack ", enemyBaseCount, " enemies")
 end
 
 function Team.GameFrame(f)
 	--Log("GameFrame")
 
+	-- TODO: base building module
 	baseMgr.GameFrame(f)
 
+	-- TODO: waypoint module
 	if waypointMgr then
 		flagsMgr.GameFrame(f)
 		combatMgr.GameFrame(f)
@@ -98,6 +86,7 @@ end
 --  Game call-ins
 --
 
+-- TODO: base building module
 -- Short circuit callin which would otherwise only forward the call..
 Team.AllowUnitCreation = unitLimitsMgr.AllowUnitCreation
 
@@ -108,52 +97,20 @@ Team.AllowUnitCreation = unitLimitsMgr.AllowUnitCreation
 
 -- Currently unitTeam always equals myTeamID (enforced in gadget)
 
+-- TODO: base building module
 -- Short circuit callin which would otherwise only forward the call..
 Team.UnitCreated = baseMgr.UnitCreated
 
 function Team.UnitFinished(unitID, unitDefID, unitTeam)
 	Log("UnitFinished: ", UnitDefs[unitDefID].humanName)
 
+	--TODO: cheat module
 	-- idea from BrainDamage: instead of cheating huge amounts of resources,
 	-- just cheat in the cost of the units we build.
 	--Spring.AddTeamResource(myTeamID, "metal", UnitDefs[unitDefID].metalCost)
 	--Spring.AddTeamResource(myTeamID, "energy", UnitDefs[unitDefID].energyCost)
 
-	-- queue unitBuildOrders if we have any for this unitDefID
-	if unitBuildOrder[unitDefID] then
-		-- factory or builder?
-		if (UnitDefs[unitDefID].TEDClass == "PLANT") then
-			-- If there are no enemies, don't bother lagging Spring to death:
-			-- just go through the build queue exactly once, instead of repeating it.
-			if enemyBaseCount > 0 then
-				GiveOrderToUnit(unitID, CMD.REPEAT, {1}, {})
-				-- Each next factory gives fight command to next enemy.
-				-- Didn't use math.random() because it's really hard to establish
-				-- a 100% correct distribution when you don't know whether the
-				-- upper bound of the RNG is inclusive or exclusive.
-				if (not waypointMgr) then
-					enemyBaseLastAttacked = enemyBaseLastAttacked + 1
-					if enemyBaseLastAttacked > enemyBaseCount then
-						enemyBaseLastAttacked = 1
-					end
-					-- queue up a bunch of fight orders towards all enemies
-					local idx = enemyBaseLastAttacked
-					for i=1,enemyBaseCount do
-						-- enemyBases[] is in the right format to pass into GiveOrderToUnit...
-						GiveOrderToUnit(unitID, CMD.FIGHT, enemyBases[idx], {"shift"})
-						idx = idx + 1
-						if idx > enemyBaseCount then idx = 1 end
-					end
-				end
-			end
-			for _,bo in ipairs(unitBuildOrder[unitDefID]) do
-				Log("Queueing: ", UnitDefs[bo].humanName)
-				GiveOrderToUnit(unitID, -bo, {}, {})
-			end
-		else
-			Log("Warning: unitBuildOrder can only be used to control factories")
-		end
-	end
+	-- TODO: how to determine module preference?
 
 	-- if any unit manager takes care of the unit, return
 	-- managers are in order of preference
@@ -173,8 +130,10 @@ end
 function Team.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	Log("UnitDestroyed: ", UnitDefs[unitDefID].humanName)
 
+	-- TODO: base building module
 	baseMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 
+	-- TODO: flag capping module (squads), combat module
 	if waypointMgr then
 		flagsMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 		combatMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
