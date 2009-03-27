@@ -2,34 +2,26 @@
 -- License: GNU General Public License v2
 
 --[[
-This class is implemented as a single function returning a table with public
-interface methods.  Private data is stored in the function's closure.
-
-Public interface:
-
-local BaseMgr = CreateBaseMgr(myTeamID, myAllyTeamID, mySide, Log)
-
-function BaseMgr.GameFrame(f)
-function BaseMgr.UnitCreated(unitID, unitDefID, unitTeam, builderID)
-function BaseMgr.UnitFinished(unitID, unitDefID, unitTeam)
-function BaseMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+Module implementing base building.
+Relies on buildsite.lua to find build sites.
 
 Possible improvements:
-- Give baseBuilders a GUARD order just after they are finished, so they don't
-  wander off towards the enemy first, and then later come back to help building.
-  (Take care of them blocking the factory in case they can assist building from
-  inside the factory...)
 - Rebuild destroyed buildings with higher priority then continuing on BO.
 - Split base builder group in two groups when it becomes too big. This would
   allow it to truely expand exponentionally :-)
 ]]--
 
-function CreateBaseMgr(myTeamID, myAllyTeamID, mySide, Log)
-
+--------------------------------------------------------------------------------
+local function CreateModule(team)
 local BaseMgr = {}
+
+-- constants
+local myTeamID = team.myTeamID
+local mySide = team.mySide
 
 -- speedups
 local GetUnitDefID = Spring.GetUnitDefID
+local Log = team.Log
 
 -- Base building (one global buildOrder)
 local buildsiteFinder = CreateBuildsiteFinder(myTeamID)
@@ -220,3 +212,6 @@ end
 
 return BaseMgr
 end
+
+--------------------------------------------------------------------------------
+return CreateModule
