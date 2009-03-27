@@ -50,42 +50,24 @@ end
 --
 
 function Mod.UnitFinished(unitID, unitDefID, unitTeam)
-	-- queue unitBuildOrders if we have any for this unitDefID
 	if unitBuildOrder[unitDefID] then
-		-- factory or builder?
-		if (UnitDefs[unitDefID].TEDClass == "PLANT") then
-			-- If there are no enemies, don't bother lagging Spring to death:
-			-- just go through the build queue exactly once, instead of repeating it.
-			if enemyBaseCount > 0 then
-				--TODO: factory module; NOT simplecombat!!
-				GiveOrderToUnit(unitID, CMD.REPEAT, {1}, {})
-				-- Each next factory gives fight command to next enemy.
-				-- Didn't use math.random() because it's really hard to establish
-				-- a 100% correct distribution when you don't know whether the
-				-- upper bound of the RNG is inclusive or exclusive.
-				if (not waypointMgr) then
-					--TODO: inside this if block really is simplecombat module
-					enemyBaseLastAttacked = enemyBaseLastAttacked + 1
-					if enemyBaseLastAttacked > enemyBaseCount then
-						enemyBaseLastAttacked = 1
-					end
-					-- queue up a bunch of fight orders towards all enemies
-					local idx = enemyBaseLastAttacked
-					for i=1,enemyBaseCount do
-						-- enemyBases[] is in the right format to pass into GiveOrderToUnit...
-						GiveOrderToUnit(unitID, CMD.FIGHT, enemyBases[idx], {"shift"})
-						idx = idx + 1
-						if idx > enemyBaseCount then idx = 1 end
-					end
-				end
+		if (UnitDefs[unitDefID].TEDClass == "PLANT") and (enemyBaseCount > 0) then
+			-- Each next factory gives fight command to next enemy.
+			-- Didn't use math.random() because it's really hard to establish
+			-- a 100% correct distribution when you don't know whether the
+			-- upper bound of the RNG is inclusive or exclusive.
+			enemyBaseLastAttacked = enemyBaseLastAttacked + 1
+			if enemyBaseLastAttacked > enemyBaseCount then
+				enemyBaseLastAttacked = 1
 			end
-			--TODO: factory module; NOT simplecombat!!
-			for _,bo in ipairs(unitBuildOrder[unitDefID]) do
-				Log("Queueing: ", UnitDefs[bo].humanName)
-				GiveOrderToUnit(unitID, -bo, {}, {})
+			-- queue up a bunch of fight orders towards all enemies
+			local idx = enemyBaseLastAttacked
+			for i=1,enemyBaseCount do
+				-- enemyBases[] is in the right format to pass into GiveOrderToUnit...
+				GiveOrderToUnit(unitID, CMD.FIGHT, enemyBases[idx], {"shift"})
+				idx = idx + 1
+				if idx > enemyBaseCount then idx = 1 end
 			end
-		else
-			Log("Warning: unitBuildOrder can only be used to control factories")
 		end
 		return true
 	end
