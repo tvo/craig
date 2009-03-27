@@ -17,6 +17,16 @@ function Team.UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 function Team.UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 ]]--
 
+local callIns = {
+	"GameStart",
+	"GameFrame",
+	"UnitCreated",
+	"UnitFinished",
+	"UnitDestroyed",
+	"UnitIdle",
+}
+
+--------------------------------------------------------------------------------
 function CreateTeam(myTeamID, myAllyTeamID, mySide)
 
 local Team = {}
@@ -28,6 +38,10 @@ do
 	end
 end
 local Log = Team.Log
+
+-- modules
+local modules = {}
+local callInLists = {}
 
 -- constants
 local GAIA_TEAM_ID = Spring.GetGaiaTeamID()
@@ -59,6 +73,23 @@ function Team.GameStart()
 	-- TODO: initialize modules
 	-- TODO: all this could use some sort of ... "gadget^H^H^H^H^H^HmoduleHandler"?
 
+	for _,callIn in ipairs(callIns) do
+		callInLists[callIn] = {}
+	end
+
+	for _,callIn in ipairs(callIns) do
+		for _,module in ipairs(modules) do
+			if type(module[callIn]) == "function" then
+				local list = callInLists[callIn]
+				list[#list + 1] = module[callIn]
+			end
+		end
+	end
+
+	for _,callIn in ipairs(callInLists.GameFrame) do
+		callIn()
+	end
+
 	-- TODO: waypoint module
 	if waypointMgr then
 		flagsMgr.GameStart()
@@ -67,6 +98,10 @@ end
 
 function Team.GameFrame(f)
 	--Log("GameFrame")
+
+	for _,callIn in ipairs(callInLists.GameFrame) do
+		callIn(f)
+	end
 
 	-- TODO: waypoint module
 	if waypointMgr then
@@ -91,12 +126,20 @@ Team.AllowUnitCreation = unitLimitsMgr.AllowUnitCreation
 
 -- Currently unitTeam always equals myTeamID (enforced in gadget)
 
--- TODO: base building module
--- Short circuit callin which would otherwise only forward the call..
-Team.UnitCreated = baseMgr.UnitCreated
+function Team.UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	Log("UnitCreated: ", UnitDefs[unitDefID].humanName)
+
+	for _,callIn in ipairs(callInLists.UnitCreated) do
+		if callIn(unitID, unitDefID, unitTeam, builderID) then return end
+	end
+end
 
 function Team.UnitFinished(unitID, unitDefID, unitTeam)
 	Log("UnitFinished: ", UnitDefs[unitDefID].humanName)
+
+	for _,callIn in ipairs(callInLists.UnitFinished) do
+		if callIn(unitID, unitDefID, unitTeam) then return end
+	end
 
 	--TODO: cheat module
 	-- idea from BrainDamage: instead of cheating huge amounts of resources,
@@ -122,6 +165,10 @@ end
 function Team.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	Log("UnitDestroyed: ", UnitDefs[unitDefID].humanName)
 
+	for _,callIn in ipairs(callInLists.UnitDestroyed) do
+		callIn(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	end
+
 	-- TODO: flag capping module (squads), combat module
 	if waypointMgr then
 		flagsMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
@@ -143,6 +190,10 @@ end
 
 function Team.UnitIdle(unitID, unitDefID, unitTeam)
 	Log("UnitIdle: ", UnitDefs[unitDefID].humanName)
+
+	for _,callIn in ipairs(callInLists.UnitIdle) do
+		callIn(unitID, unitDefID, unitTeam)
+	end
 end
 
 --------------------------------------------------------------------------------
