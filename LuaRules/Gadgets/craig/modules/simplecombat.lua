@@ -81,4 +81,8 @@ return Mod
 end
 
 --------------------------------------------------------------------------------
-return CreateModule
+return {
+	name = "simplecombat",
+	layer = 0,
+	ctor = CreateModule,
+}

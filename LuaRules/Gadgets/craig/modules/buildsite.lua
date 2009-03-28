@@ -361,4 +361,8 @@ return Mod
 end
 
 --------------------------------------------------------------------------------
-return CreateModule
+return {
+	name = "buildsite",
+	layer = 0,
+	ctor = CreateModule,
+}

@@ -117,6 +117,42 @@ else
 --  UNSYNCED
 --
 
+
+-- Module loader
+local filenames = VFS.DirList("LuaRules/Gadgets/craig/modules", "*.lua")
+local modules = {}
+
+local function LoadFile(filename)
+	local text = VFS.LoadFile(filename, VFS.ZIP)
+	if (text == nil) then
+		Spring.Echo("Failed to load: ", filename)
+		return nil
+	end
+	local chunk, err = loadstring(text, filename)
+	if (chunk == nil) then
+		Spring.Echo("Failed to load: ", filename, "  (", err, ")")
+		return nil
+	end
+	return chunk
+end
+
+for i,filename in ipairs(filenames) do
+	local chunk = LoadFile(filename)
+	local module = chunk()
+	if module then
+		if (type(module.name) ~= "string") then error("C.R.A.I.G.: " .. filename .. ": module name must be a string value") end
+		if (type(module.layer) ~= "number") then error("C.R.A.I.G.: " .. filename .. ": module layer must be a number value") end
+		if (type(module.ctor) ~= "function") then error("C.R.A.I.G.: " .. filename .. ": module ctor must be a function") end
+		modules[#modules + 1] = module
+	end
+end
+
+table.sort(modules, function (a, b)
+	if (a.layer == b.layer) then return a.name < b.name end
+	return a.layer < b.layer
+end)
+
+
 --constants
 local MY_PLAYER_ID = Spring.GetMyPlayerID()
 

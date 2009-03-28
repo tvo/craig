@@ -7,8 +7,9 @@ The module interface is as follows:
 All the LUA files in /modules/ are parsed and run a single time for the entire
 gadget. They execute in the global (gadget) environment, and can set up gadget-
 wide local variables / speedups, etc.  Execution of a module file should return
-a single function.  This function is called to instantiate a copy of the module
-for each AI controlled team.  The team table is the sole argument to the
+a single table, containing at least name, layer and ctor fields.
+The 'ctor' constructor function is called to instantiate a copy of the module
+for each AI controlled team.  The team table is the sole argument to this
 function, and the module table is the sole return value.  The module table
 may contain callins similar to gadget callins, with three main differences:
   1) module callins are only called for the team the module belongs to
@@ -56,4 +57,8 @@ return Mod
 end
 
 --------------------------------------------------------------------------------
-return CreateModule
+return {
+	name = "template",
+	layer = 0,
+	ctor = CreateModule,
+}

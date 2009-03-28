@@ -42,4 +42,8 @@ return Mod
 end
 
 --------------------------------------------------------------------------------
-return CreateModule
+return {
+	name = "factory",
+	layer = 0,
+	ctor = CreateModule,
+}

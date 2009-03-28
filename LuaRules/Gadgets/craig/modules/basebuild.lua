@@ -210,4 +210,8 @@ return Mod
 end
 
 --------------------------------------------------------------------------------
-return CreateModule
+return {
+	name = "basebuild",
+	layer = 0,
+	ctor = CreateModule,
+}
