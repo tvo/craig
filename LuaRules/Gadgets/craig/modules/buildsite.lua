@@ -3,20 +3,9 @@
 -- License: GNU LGPL, v2.1 or later
 
 --[[
-This class is implemented as a single function returning a table with public
-interface methods.  Private data is stored in the function's closure.
+Buildsite finder module, exists because there is no ClosestBuildsite callout?
 
 Public interface:
-
-local buildsiteFinder = CreateBuildsiteFinder(myTeamID)
-
-function buildsiteFinder.UnitCreated(unitID, unitDefID, unitTeam)
-	Must be called for each unit entering the team
-	(e.g. from gadget:UnitCreated, gadget:UnitGiven)
-
-function buildsiteFinder.UnitDestroyed(unitID, unitDefID, unitTeam)
-	Must be called for each unit leaving the team
-	(e.g. from gadget:UnitDestroyed, gadget:UnitTaken)
 
 function buildsiteFinder.FindBuildsite(builderID, unitDefID, closest)
 	Returns x, y, z, facing if it finds a suitable buildsite for unitDefID.
@@ -29,7 +18,8 @@ unitDef.customParams.buildrange defines the radius of the circle around this
 building on which the AI will try to build. (default: DEFAULT_BUILD_RANGE)
 --]]
 
-function CreateBuildsiteFinder(myTeamID)
+--------------------------------------------------------------------------------
+local function CreateModule(team)
 
 -- keeping the original name may be easier
 -- when backporting fixes from the widget
@@ -75,6 +65,8 @@ local strSub = string.sub
 
 local MAP_SIZE_X = Game.mapSizeX
 local MAP_SIZE_Z = Game.mapSizeZ
+
+local myTeamID = team.myTeamID
 
 ------------------------------------------------
 --util
@@ -233,7 +225,7 @@ end
 --callins
 ------------------------------------------------
 
-function widget.UnitCreated(unitID, unitDefID, unitTeam)
+function widget.UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if (not AreTeamsAllied(unitTeam, myTeamID)) then
 		return
 	end
@@ -371,5 +363,7 @@ end
 
 Initialize()
 return widget
-
 end
+
+--------------------------------------------------------------------------------
+return CreateModule
