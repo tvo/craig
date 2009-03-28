@@ -20,11 +20,11 @@ local MY_TEAM_ID = team.myTeamID
 local MY_SIDE = team.mySide
 
 -- speedups
+local FindBuildsite = assert(team.GetModule("buildsite")).FindBuildsite
 local GetUnitDefID = Spring.GetUnitDefID
 local Log = team.Log
 
 -- Base building (one global buildOrder)
-local buildsiteFinder = CreateBuildsiteFinder(MY_TEAM_ID)
 local baseBuildOrder = gadget.baseBuildOrder[MY_SIDE]
 local baseBuildIndex = 0
 local baseBuilders = gadget.baseBuilders -- set of all unitDefIDs which are base builders
@@ -93,7 +93,7 @@ local function BuildBase()
 	if not builderID then Log("internal error: no builders were found") return end
 
 	-- give the order to the builder, iff we can find a buildsite
-	local x,y,z,facing = buildsiteFinder.FindBuildsite(builderID, unitDefID, bUseClosestBuildSite)
+	local x,y,z,facing = FindBuildsite(builderID, unitDefID, bUseClosestBuildSite)
 	if not x then Log("Could not find buildsite for ", UnitDefs[unitDefID].humanName) return end
 
 	Log("Queueing in place: ", UnitDefs[unitDefID].humanName)
@@ -149,8 +149,6 @@ end
 --
 
 function Mod.UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	buildsiteFinder.UnitCreated(unitID, unitDefID, unitTeam)
-
 	if (not currentBuildID) and (unitDefID == currentBuildDefID) and (builderID == currentBuilder) then
 		currentBuildID = unitID
 	end
@@ -182,8 +180,6 @@ function Mod.UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function Mod.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	buildsiteFinder.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-
 	-- update baseBuildOptions
 	if baseBuilders[unitDefID] then
 		myBaseBuilders[unitID] = nil

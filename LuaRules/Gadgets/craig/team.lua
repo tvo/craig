@@ -61,6 +61,15 @@ local combatMgr = CreateCombatMgr(myTeamID, myAllyTeamID, Log)
 local flagsMgr = CreateFlagsMgr(myTeamID, myAllyTeamID, mySide, Log)
 
 --------------------------------------------------------------------------------
+
+function Team.GetModule(name)
+	for _,module in ipairs(modules) do
+		if (module.name == name) then return module end
+	end
+	return nil, "C.R.A.I.G.: module " .. name .. " not found!"
+end
+
+--------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
 --  The call-in routines
