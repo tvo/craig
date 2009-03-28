@@ -18,42 +18,25 @@ unitDef.customParams.buildrange defines the radius of the circle around this
 building on which the AI will try to build. (default: DEFAULT_BUILD_RANGE)
 --]]
 
---------------------------------------------------------------------------------
-local function CreateModule(team)
 
--- keeping the original name may be easier
--- when backporting fixes from the widget
-local widget = {}
 
 ------------------------------------------------
 --config
 ------------------------------------------------
-local segmentLength = 10
-
+local SEGMENT_LENGTH = 10
 local DEFAULT_BUILD_RANGE = 250
 
 ------------------------------------------------
---vars
+--global speedups and constants
 ------------------------------------------------
-
 local abs = math.abs
 local sin, cos = math.sin, math.cos
 local ceil, floor = math.ceil, math.floor
 local min, max = math.min, math.max
 local PI = math.pi
 
---format: unitDefID = {radius, numSegments, segmentAngle, oddX, oddZ}
-local supplyDefInfos = {}
-
---format: unitID = {[1] = bool, [2] = bool, ... [numSegments] = bool, r = number, numSegments = number, segmentAngle = number, x = number, y = number, z = number}
-local supplyInfos = {}
-
-------------------------------------------------
---speedups and constants
-------------------------------------------------
 local GetUnitSeparation = Spring.GetUnitSeparation
 local GetUnitPosition = Spring.GetUnitPosition
-local AreTeamsAllied = Spring.AreTeamsAllied
 local GetUnitDefID = Spring.GetUnitDefID
 local GetUnitTeam = Spring.GetUnitTeam
 local GetGroundHeight = Spring.GetGroundHeight
@@ -66,7 +49,23 @@ local strSub = string.sub
 local MAP_SIZE_X = Game.mapSizeX
 local MAP_SIZE_Z = Game.mapSizeZ
 
-local myTeamID = team.myTeamID
+
+
+--------------------------------------------------------------------------------
+local function CreateModule(team)
+local Mod = {}
+
+------------------------------------------------
+--vars
+------------------------------------------------
+
+local MY_TEAM_ID = team.myTeamID
+
+--format: unitDefID = {radius, numSegments, segmentAngle, oddX, oddZ}
+local supplyDefInfos = {}
+
+--format: unitID = {[1] = bool, [2] = bool, ... [numSegments] = bool, r = number, numSegments = number, segmentAngle = number, x = number, y = number, z = number}
+local supplyInfos = {}
 
 ------------------------------------------------
 --util
@@ -180,10 +179,10 @@ end
 local function Reset()
 	supplyInfos= {}
 
-	local allUnits = GetTeamUnits(myTeamID)
+	local allUnits = GetTeamUnits(MY_TEAM_ID)
 	for i=1,#allUnits do
 		local unitID = allUnits[i]
-		widget.UnitCreated(unitID, GetUnitDefID(unitID), GetUnitTeam(unitID))
+		Mod.UnitCreated(unitID, GetUnitDefID(unitID), GetUnitTeam(unitID))
 	end
 end
 
@@ -225,11 +224,7 @@ end
 --callins
 ------------------------------------------------
 
-function widget.UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if (not AreTeamsAllied(unitTeam, myTeamID)) then
-		return
-	end
-
+function Mod.UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local supplyDefInfo = supplyDefInfos[unitDefID]
 
 	if (not supplyDefInfo) then return end
@@ -247,7 +242,7 @@ function widget.UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	supplyInfos[unitID] = supplyInfo
 end
 
-function widget.UnitDestroyed(unitID, unitDefID, unitTeam)
+function Mod.UnitDestroyed(unitID, unitDefID, unitTeam)
 	local supplyInfo = supplyInfos[unitID]
 	if supplyInfo then
 		supplyInfos[unitID] = nil
@@ -260,7 +255,7 @@ local function Initialize()
 		local unitDef = UnitDefs[unitDefID]
 		if (not gadget.flags[unitDefID] and unitDef.speed == 0) then
 			local radius = unitDef.customParams.buildrange or DEFAULT_BUILD_RANGE
-			local numSegments = ceil(radius / segmentLength)
+			local numSegments = ceil(radius / SEGMENT_LENGTH)
 			local segmentAngle = 2 * PI / numSegments
 			local oddX, oddZ
 			if (unitDef.xsize % 4 == 2) then
@@ -303,7 +298,7 @@ end
 -- Wee, the first function in this file written by myself!
 -- This is main public method; it finds good buildsites.
 -- returns x,y,z,facing, or nil if it can not find any build position
-function widget.FindBuildsite(builderID, unitDefID, closest)
+function Mod.FindBuildsite(builderID, unitDefID, closest)
 	-- build list of points, similar to points shown by S44 supplyradius widget,
 	-- but with different radii (currently fixed for all buildings)
 	local vertices = DrawMain()
@@ -362,7 +357,7 @@ function widget.FindBuildsite(builderID, unitDefID, closest)
 end
 
 Initialize()
-return widget
+return Mod
 end
 
 --------------------------------------------------------------------------------
