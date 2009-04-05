@@ -20,7 +20,7 @@ local MY_TEAM_ID = team.myTeamID
 local MY_SIDE = team.mySide
 
 -- speedups
-local FindBuildsite = assert(team.GetModule("buildsite")).FindBuildsite
+local FindBuildsite --initialized in GameStart
 local GetUnitDefID = Spring.GetUnitDefID
 local Log = team.Log
 
@@ -120,6 +120,10 @@ end
 --
 --  The call-in routines
 --
+
+function Mod.GameStart(f)
+	FindBuildsite = assert(team.GetModule("buildsite")).FindBuildsite
+end
 
 function Mod.GameFrame(f)
 	-- update baseBuildOptions

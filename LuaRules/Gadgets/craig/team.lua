@@ -29,7 +29,11 @@ local callIns = {
 --------------------------------------------------------------------------------
 function CreateTeam(myTeamID, myAllyTeamID, mySide)
 
-local Team = {}
+local Team = {
+	myTeamID = myTeamID,
+	myAllyTeamID = myAllyTeamID,
+	mySide = mySide,
+}
 
 do
 	local GadgetLog = gadget.Log
@@ -78,24 +82,7 @@ end
 function Team.GameStart()
 	Log("GameStart")
 
-	-- TODO: somehow instantiate modules
-	-- TODO: initialize modules
-	-- TODO: all this could use some sort of ... "gadget^H^H^H^H^H^HmoduleHandler"?
-
-	for _,callIn in ipairs(callIns) do
-		callInLists[callIn] = {}
-	end
-
-	for _,callIn in ipairs(callIns) do
-		for _,module in ipairs(modules) do
-			if type(module[callIn]) == "function" then
-				local list = callInLists[callIn]
-				list[#list + 1] = module[callIn]
-			end
-		end
-	end
-
-	for _,callIn in ipairs(callInLists.GameFrame) do
+	for _,callIn in ipairs(callInLists.GameStart) do
 		callIn()
 	end
 
@@ -209,6 +196,28 @@ end
 --
 --  Initialization
 --
+
+-- Module initialization
+do
+	for _,module in ipairs(gadget.modules) do
+		local inst = module.ctor(Team)
+		inst.name = module.name --needed in GetModule
+		modules[#modules + 1] = inst
+	end
+
+	for _,callIn in ipairs(callIns) do
+		callInLists[callIn] = {}
+	end
+
+	for _,callIn in ipairs(callIns) do
+		local list = callInLists[callIn]
+		for _,module in ipairs(modules) do
+			if type(module[callIn]) == "function" then
+				list[#list + 1] = module[callIn]
+			end
+		end
+	end
+end
 
 Log("assigned to ", gadget.ghInfo.name, " (allyteam: ", myAllyTeamID, ", side: ", mySide, ")")
 
