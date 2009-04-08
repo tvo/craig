@@ -26,7 +26,7 @@ local SQUAD_SIZE = SQUAD_SIZE
 local SQUAD_SPREAD = 250
 
 -- speedups
-local waypointMgr = gadget.waypointMgr
+local waypointMgr = GG.CRAIG_WaypointMgr
 local waypoints = waypointMgr.GetWaypoints()
 local GetUnitNoSelect = Spring.GetUnitNoSelect
 

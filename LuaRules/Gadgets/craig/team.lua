@@ -57,7 +57,7 @@ local unitBuildOrder = gadget.unitBuildOrder
 local unitLimitsMgr = CreateUnitLimitsMgr(myTeamID)
 
 -- Combat management
-local waypointMgr = gadget.waypointMgr
+local waypointMgr = GG.CRAIG_WaypointMgr
 local lastWaypoint = 0
 local combatMgr = CreateCombatMgr(myTeamID, myAllyTeamID, Log)
 

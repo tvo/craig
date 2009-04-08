@@ -18,7 +18,7 @@ function FlagsMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attacke
 function CreateFlagsMgr(myTeamID, myAllyTeamID, mySide, Log)
 
 -- Can not do flag capping if we don't have waypoints..
-if (not gadget.waypointMgr) then
+if (not GG.CRAIG_WaypointMgr) then
 	return false
 end
 
@@ -32,7 +32,7 @@ local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitTeam = Spring.GetUnitTeam
 
 local flagCappers = gadget.flagCappers
-local waypointMgr = gadget.waypointMgr
+local waypointMgr = GG.CRAIG_WaypointMgr
 local waypoints = waypointMgr.GetWaypoints()
 
 -- members

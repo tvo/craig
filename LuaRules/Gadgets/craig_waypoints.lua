@@ -248,11 +248,6 @@ end
 --  The call-in routines
 --
 
-function gadget:Initialize()
-	--TODO: register public API
-end
-
-
 function gadget:GamePreload()
 	local function LoadFile(filename)
 		local text = VFS.LoadFile(filename, VFS.ZIP)
@@ -418,3 +413,17 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		end
 	end
 end
+
+
+---------------------------------------------------------------------------------
+---
+---  Initialization
+---
+
+local WaypointMgr = {
+	GetWaypoints = GetWaypoints,
+	GetTeamStartPosition = GetTeamStartPosition,
+	GetFrontline = GetFrontline,
+}
+
+GG.CRAIG_WaypointMgr = WaypointMgr
