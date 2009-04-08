@@ -22,7 +22,7 @@ if (gadgetHandler:IsSyncedCode()) then
 	local teams = {}
 	local count = 0
 	for _,t in ipairs(Spring.GetTeamList()) do
-		if (Spring.GetTeamLuaAI(t):find(NAME) == 0) then
+		if (Spring.GetTeamLuaAI(t):find(NAME) == 1) then
 			teams[t] = true
 			count = count + 1
 		end
@@ -35,7 +35,7 @@ else
 	local count = 0
 	local myPlayerID = Spring.GetMyPlayerID()
 	for _,t in ipairs(Spring.GetTeamList()) do
-		if (Spring.GetTeamLuaAI(t):find(NAME) == 0) then
+		if (Spring.GetTeamLuaAI(t):find(NAME) == 1) then
 			local _,leader,_,_,_,_ = Spring.GetTeamInfo(t)
 			if (leader == myPlayerID) then
 				count = count + 1
