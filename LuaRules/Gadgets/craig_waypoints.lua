@@ -1,6 +1,18 @@
 -- Author: Tobi Vollebregt
 -- License: GNU General Public License v2
 
+function gadget:GetInfo()
+	return {
+		name = "C.R.A.I.G. Waypoint API",
+		desc = "Configurable Reusable Artificial Intelligence Gadget",
+		author = "Tobi Vollebregt",
+		date = "feb 2009",
+		license = "GNU General Public License",
+  		layer = 82,
+		enabled = true
+	}
+end
+
 --[[
 This class is implemented as a single function returning a table with public
 interface methods.  Private data is stored in the function's closure.
@@ -20,8 +32,6 @@ function WaypointMgr.GetFrontline(myTeamID, myAllyTeamID)
 	Returns frontline, previous. Frontline is the set of waypoints adjacent
 
 ]]--
-
-function CreateWaypointMgr()
 
 -- constants
 local GAIA_TEAM_ID    = Spring.GetGaiaTeamID()
@@ -384,7 +394,3 @@ end
 -- find GAIA_ALLYTEAM_ID
 local _,_,_,_,_,at = Spring.GetTeamInfo(GAIA_TEAM_ID)
 GAIA_ALLYTEAM_ID = at
-
-end
-return WaypointMgr
-end
