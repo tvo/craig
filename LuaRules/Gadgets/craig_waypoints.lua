@@ -33,6 +33,21 @@ function WaypointMgr.GetFrontline(myTeamID, myAllyTeamID)
 
 ]]--
 
+if (not gadgetHandler:IsSyncedCode()) then
+	return false --ask for quiet death
+end
+
+if (not include("LuaRules/Gadgets/craig/enabled.lua")) then
+	return false --ask for quiet death
+end
+
+local function Log(...)
+end
+
+local function Warning(...)
+	Spring.Echo("C.R.A.I.G.: " .. table.concat{...})
+end
+
 -- constants
 local GAIA_TEAM_ID    = Spring.GetGaiaTeamID()
 local GAIA_ALLYTEAM_ID      -- initialized later on..

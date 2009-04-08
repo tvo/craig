@@ -75,27 +75,19 @@ local GetUnitTeam = Spring.GetUnitTeam
 local numMessages = 0
 local messageQueue = {}
 --local allowedPlayers = {}
-local allowedTeams = {}
-
-gadget.team = allowedTeams
-
+local allowedTeams
 
 -- If no AIs are in the game, ask for a quiet death.
 do
-	local name = gadget:GetInfo().name
-	local count = 0
-	for _,t in ipairs(Spring.GetTeamList()) do
-		if Spring.GetTeamLuaAI(t) == name then
-			--local _,leader,_,_,_,_ = Spring.GetTeamInfo(t)
-			--allowedPlayers[leader] = true
-			--Log("SYNCED: allowed player: ", leader)
-			allowedTeams[t] = true
-			Log("SYNCED: allowed team: ", t)
-			count = count + 1
-		end
+	local enabled, teams = include("LuaRules/Gadgets/craig/enabled.lua")
+	if (not enabled) then
+		return false
 	end
-	if count == 0 then return false end
+	allowedTeams = teams
 end
+
+gadget.team = allowedTeams
+
 
 
 local function DeserializeAndProcessMessage(msg)
@@ -206,17 +198,8 @@ else
 --
 
 -- If we are not teamLeader of an AI team, ask for a quiet death.
-do
-	local count = 0
-	local name = gadget:GetInfo().name
-	local myPlayerID = Spring.GetMyPlayerID()
-	for _,t in ipairs(Spring.GetTeamList()) do
-		if Spring.GetTeamLuaAI(t) == name then
-			local _,leader,_,_,_,_ = Spring.GetTeamInfo(t)
-			if (leader == myPlayerID) then count = count + 1 end
-		end
-	end
-	if count == 0 then return false end
+if (not include("LuaRules/Gadgets/craig/enabled.lua")) then
+	return false
 end
 
 
