@@ -42,6 +42,8 @@ if (not include("LuaRules/Gadgets/craig/enabled.lua")) then
 end
 
 local function Log(...)
+	--TODO: make disableable?
+	Spring.Echo("C.R.A.I.G.: " .. table.concat{...})
 end
 
 local function Warning(...)
@@ -85,6 +87,8 @@ local frontlineCache = {}
 
 -- caches result of Spring.GetTeamStartPosition
 local teamStartPosition = {}
+
+local waypointMgrGameFrameRate = 0
 
 
 local function GetDist2D(x, z, p, q)
@@ -223,12 +227,6 @@ end
 --  WaypointMgr public interface
 --
 
-function WaypointMgr.GetGameFrameRate()
-	-- returns every how many frames GameFrame should be called.
-	-- currently I set this so each waypoint is updated every 30 sec (= 900 frames)
-	return math.floor(900 / #waypoints)
-end
-
 function WaypointMgr.GetWaypoints()
 	return waypoints
 end
@@ -264,6 +262,8 @@ function WaypointMgr.GameStart()
 end
 
 function WaypointMgr.GameFrame(f)
+	if (f % waypointMgrGameFrameRate > .1) then return end
+
 	index = (index % #waypoints) + 1
 	--Log("WaypointMgr: updating waypoint ", index)
 	local p = waypoints[index]
@@ -409,3 +409,8 @@ end
 -- find GAIA_ALLYTEAM_ID
 local _,_,_,_,_,at = Spring.GetTeamInfo(GAIA_TEAM_ID)
 GAIA_ALLYTEAM_ID = at
+
+--moved from craig.lua (former main.lua), TODO: needs cleanup
+-- indicates every how many frames GameFrame should be called.
+-- currently I set this so each waypoint is updated every 30 sec (= 900 frames)
+waypointMgrGameFrameRate = math.floor(900 / #waypoints)

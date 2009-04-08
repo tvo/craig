@@ -157,9 +157,6 @@ end
 --constants
 local MY_PLAYER_ID = Spring.GetMyPlayerID()
 
--- globals
-waypointMgr = {}
-
 -- include code
 include("LuaRules/Gadgets/craig/buildsite.lua")
 include("LuaRules/Gadgets/craig/base.lua")
@@ -168,12 +165,10 @@ include("LuaRules/Gadgets/craig/flags.lua")
 include("LuaRules/Gadgets/craig/pathfinder.lua")
 include("LuaRules/Gadgets/craig/unitlimits.lua")
 include("LuaRules/Gadgets/craig/team.lua")
-include("LuaRules/Gadgets/craig/waypoints.lua")
 
 -- locals
 local CRAIG_Debug_Mode = 1 -- Must be 0 or 1
 local team = {}
-local waypointMgrGameFrameRate = 0
 
 --------------------------------------------------------------------------------
 
@@ -237,11 +232,6 @@ end
 function gadget:GamePreload()
 	-- This is executed BEFORE headquarters / commander is spawned
 	Log("gadget:GamePreload")
-	-- Intialise waypoint manager
-	waypointMgr = CreateWaypointMgr()
-	if waypointMgr then
-		waypointMgrGameFrameRate = waypointMgr.GetGameFrameRate()
-	end
 	-- Initialise AI for all team that are set to use it
 	local name = gadget:GetInfo().name
 	for _,t in ipairs(Spring.GetTeamList()) do
@@ -257,20 +247,12 @@ end
 function gadget:GameStart()
 	-- This is executed AFTER headquarters / commander is spawned
 	Log("gadget:GameStart")
-	if waypointMgr then
-		waypointMgr.GameStart()
-	end
 	for _,t in pairs(team) do
 		t.GameStart()
 	end
 end
 
 function gadget:GameFrame(f)
-	-- waypointMgr update
-	if waypointMgr and f % waypointMgrGameFrameRate < .1 then
-		waypointMgr.GameFrame(f)
-	end
-
 	-- AI update
 	if f % 128 < .1 then
 		for _,t in pairs(team) do
@@ -313,9 +295,6 @@ end
 --
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if waypointMgr then
-		waypointMgr.UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	end
 	if team[unitTeam] then
 		team[unitTeam].UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
@@ -328,9 +307,6 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	if waypointMgr then
-		waypointMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	end
 	if team[unitTeam] then
 		team[unitTeam].UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	end
