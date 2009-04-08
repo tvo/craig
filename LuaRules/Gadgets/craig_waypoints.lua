@@ -68,9 +68,6 @@ local GetUnitPosition = Spring.GetUnitPosition
 local sqrt = math.sqrt
 local isFlag = gadget.flags
 
--- class
-local WaypointMgr = {}
-
 -- Array containing the waypoints and adjacency relations
 -- Format: { { x = x, y = y, z = z, adj = {}, --[[ more properties ]]-- }, ... }
 local waypoints = {}
@@ -227,20 +224,23 @@ end
 --  WaypointMgr public interface
 --
 
-function WaypointMgr.GetWaypoints()
+-- TODO: export these in _G, GG or using RegisterGlobal?
+
+local function GetWaypoints()
 	return waypoints
 end
 
-function WaypointMgr.GetTeamStartPosition(myTeamID)
+local function GetTeamStartPosition(myTeamID)
 	return teamStartPosition[myTeamID]
 end
 
-function WaypointMgr.GetFrontline(myTeamID, myAllyTeamID)
+local function GetFrontline(myTeamID, myAllyTeamID)
 	if (not frontlineCache[myTeamID]) then
 		frontlineCache[myTeamID] = { CalculateFrontline(myTeamID, myAllyTeamID) }
 	end
 	return unpack(frontlineCache[myTeamID])
 end
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -248,7 +248,84 @@ end
 --  The call-in routines
 --
 
-function WaypointMgr.GameStart()
+function gadget:Initialize()
+	--TODO: register public API
+end
+
+
+function gadget:GamePreload()
+	local function LoadFile(filename)
+		local text = VFS.LoadFile(filename, VFS.ZIP)
+		if (text == nil) then
+			Warning("Failed to load: ", filename)
+			return nil
+		end
+		Warning("Map waypoint profile found. Loading waypoints.")
+		local chunk, err = loadstring(text, filename)
+		if (chunk == nil) then
+			Warning("Failed to load: ", filename, "  (", err, ")")
+			return nil
+		end
+		return chunk
+	end
+
+	local function AddWaypoint(x, y, z)
+		local waypoint = {
+			x = x, y = y, z = z, --position
+			adj = {},            --map of adjacent waypoints -> edge distance
+			flags = {},          --array of flag unitIDs
+			allyTeamUnitCount = {},
+		}
+		setmetatable(waypoint, Waypoint)
+		waypoints[#waypoints+1] = waypoint
+		return waypoint
+	end
+
+	local function GetWaypointDist2D(a, b)
+		local dx = a.x - b.x
+		local dz = a.z - b.z
+		return sqrt(dx * dx + dz * dz)
+	end
+
+	local function AddConnection(a, b)
+		local edge = {dist = GetWaypointDist2D(a, b)}
+		a.adj[b] = edge
+		b.adj[a] = edge
+	end
+
+	-- load chunk
+	local chunk = LoadFile("LuaRules/Configs/craig/maps/" .. Game.mapName .. ".lua")
+	if (chunk == nil) then
+		Warning("No waypoint profile found. Will not use waypoints on this map.")
+		return false
+	end
+
+	-- execute chunk
+	setfenv(chunk, { AddWaypoint = AddWaypoint, AddConnection = AddConnection })
+	chunk()
+	Log(#waypoints, " waypoints succesfully loaded.")
+
+	-- make map of teams to allyTeams
+	-- this must contain not only AI teams, but also player teams!
+	for _,t in ipairs(Spring.GetTeamList()) do
+		if (t ~= GAIA_TEAM_ID) then
+			local _,_,_,_,_,at = Spring.GetTeamInfo(t)
+			teamToAllyteam[t] = at
+		end
+	end
+
+	-- find GAIA_ALLYTEAM_ID
+	local _,_,_,_,_,at = Spring.GetTeamInfo(GAIA_TEAM_ID)
+	GAIA_ALLYTEAM_ID = at
+
+	--moved from craig.lua (former main.lua), TODO: needs cleanup
+	-- indicates every how many frames GameFrame should be called.
+	-- currently I set this so each waypoint is updated every 30 sec (= 900 frames)
+	waypointMgrGameFrameRate = math.floor(900 / #waypoints)
+end
+
+
+function gadget:GameStart()
 	-- Can not run this in the initialization code at the end of this file,
 	-- because at that time Spring.GetTeamStartPosition seems to always return 0,0,0.
 	for _,t in ipairs(Spring.GetTeamList()) do
@@ -261,7 +338,8 @@ function WaypointMgr.GameStart()
 	end
 end
 
-function WaypointMgr.GameFrame(f)
+
+function gadget:GameFrame(f)
 	if (f % waypointMgrGameFrameRate > .1) then return end
 
 	index = (index % #waypoints) + 1
@@ -306,12 +384,13 @@ function WaypointMgr.GameFrame(f)
 	end
 end
 
+
 --------------------------------------------------------------------------------
 --
 --  Unit call-ins
 --
 
-function WaypointMgr.UnitCreated(unitID, unitDefID, unitTeam, builderID)
+function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if isFlag[unitDefID] then
 		-- This is O(n*m), with n = number of flags and m = number of waypoints.
 		local x, y, z = GetUnitPosition(unitID)
@@ -324,7 +403,8 @@ function WaypointMgr.UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
 end
 
-function WaypointMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	if isFlag[unitDefID] then
 		local p = flags[unitID]
 		if p then
@@ -338,79 +418,3 @@ function WaypointMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, atta
 		end
 	end
 end
-
---------------------------------------------------------------------------------
---
---  Initialization
---
-
-do
-
-local function LoadFile(filename)
-	local text = VFS.LoadFile(filename, VFS.ZIP)
-	if (text == nil) then
-		Warning("Failed to load: ", filename)
-		return nil
-	end
-	Warning("Map waypoint profile found. Loading waypoints.")
-	local chunk, err = loadstring(text, filename)
-	if (chunk == nil) then
-		Warning("Failed to load: ", filename, "  (", err, ")")
-		return nil
-	end
-	return chunk
-end
-
-local function AddWaypoint(x, y, z)
-	local waypoint = {
-		x = x, y = y, z = z, --position
-		adj = {},            --map of adjacent waypoints -> edge distance
-		flags = {},          --array of flag unitIDs
-		allyTeamUnitCount = {},
-	}
-	setmetatable(waypoint, Waypoint)
-	waypoints[#waypoints+1] = waypoint
-	return waypoint
-end
-
-local function GetWaypointDist2D(a, b)
-	local dx = a.x - b.x
-	local dz = a.z - b.z
-	return sqrt(dx * dx + dz * dz)
-end
-
-local function AddConnection(a, b)
-	local edge = {dist = GetWaypointDist2D(a, b)}
-	a.adj[b] = edge
-	b.adj[a] = edge
-end
-
--- load chunk
-local chunk = LoadFile("LuaRules/Configs/craig/maps/" .. Game.mapName .. ".lua")
-if (chunk == nil) then
-	Warning("No waypoint profile found. Will not use waypoints on this map.")
-	return false
-end
-
--- execute chunk
-setfenv(chunk, { AddWaypoint = AddWaypoint, AddConnection = AddConnection })
-chunk()
-Log(#waypoints, " waypoints succesfully loaded.")
-
--- make map of teams to allyTeams
--- this must contain not only AI teams, but also player teams!
-for _,t in ipairs(Spring.GetTeamList()) do
-	if (t ~= GAIA_TEAM_ID) then
-		local _,_,_,_,_,at = Spring.GetTeamInfo(t)
-		teamToAllyteam[t] = at
-	end
-end
-
--- find GAIA_ALLYTEAM_ID
-local _,_,_,_,_,at = Spring.GetTeamInfo(GAIA_TEAM_ID)
-GAIA_ALLYTEAM_ID = at
-
---moved from craig.lua (former main.lua), TODO: needs cleanup
--- indicates every how many frames GameFrame should be called.
--- currently I set this so each waypoint is updated every 30 sec (= 900 frames)
-waypointMgrGameFrameRate = math.floor(900 / #waypoints)
