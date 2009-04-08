@@ -15,7 +15,7 @@ function CombatMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attack
 function CreateCombatMgr(myTeamID, myAllyTeamID, Log)
 
 -- Can not manage combat if we don't have waypoints..
-if (not gadget.waypointMgr) then
+if (not GG.CRAIG_WaypointMgr) then
 	return false
 end
 
