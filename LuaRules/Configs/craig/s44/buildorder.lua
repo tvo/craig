@@ -30,16 +30,6 @@ gadget.unitBuildOrder = UnitBag{
 		"gbrmatadorengvehicle",
 		"gbrdaimler",
 		"gbrm5halftrack",
-		"gbrdaimler",
-		"gbrm5halftrack",
-		"gbrdaimler",
-		"gbrm5halftrack",
-		"gbrdaimler",
-		"gbrm5halftrack",
-		"gbrdaimler",
-		"gbrm5halftrack",
-		"gbrdaimler",
-		"gbrm5halftrack",
 	},
 	-- it can not upgrade tank yard yet!
 	gbrtankyard = UnitArray{
@@ -111,12 +101,6 @@ gadget.unitBuildOrder = UnitBag{
 		"gersdkfz250",
 		"gersdkfz251",
 		"germarder",
-		"gersdkfz251",
-		"gersdkfz250",
-		"gersdkfz251",
-		"gersdkfz250",
-		"gersdkfz251",
-		"germarder",
 	},
 	gertankyard = UnitArray{
 		-- Works J
@@ -143,12 +127,6 @@ gadget.unitBuildOrder = UnitBag{
 	usvehicleyard = UnitArray{
 		-- Works J
 		"usgmcengvehicle",
-		"usm3halftrack",
-		"usm8greyhound",
-		"usm3halftrack",
-		"usm8greyhound",
-		"usm3halftrack",
-		"usm8scott",
 		"usm3halftrack",
 		"usm8greyhound",
 		"usm3halftrack",
