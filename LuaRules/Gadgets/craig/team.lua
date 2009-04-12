@@ -125,7 +125,7 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 		if (UnitDefs[unitDefID].TEDClass == "PLANT") then
 			-- If there are no enemies, don't bother lagging Spring to death:
 			-- just go through the build queue exactly once, instead of repeating it.
-			if enemyBaseCount > 0 then
+			if (enemyBaseCount > 0 or Spring.GetGameSeconds() < 0.1) then
 				GiveOrderToUnit(unitID, CMD.REPEAT, {1}, {})
 				-- Each next factory gives fight command to next enemy.
 				-- Didn't use math.random() because it's really hard to establish
