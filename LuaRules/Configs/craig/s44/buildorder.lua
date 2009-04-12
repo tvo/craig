@@ -145,39 +145,39 @@ gadget.unitBuildOrder = UnitBag{
 gadget.baseBuildOrder = {
 	gbr = UnitArray{
 		-- I used storages basically to delay tech up a bit :P Making GBR the easy faction to play against.
-		"gbrbarracks", "gbrbarracks", "gbrbarracks",
-		"gbrvehicleyard", "gbrvehicleyard", "gbrvehicleyard",
-		"gbrstorage",
+		"gbrbarracks", "gbrbarracks",
+		"gbrvehicleyard",
+		"gbrstorage", "gbrstorage",
 		-- GBR doesn't have packed howitzers, and C.R.A.I.G. doesn't know
 		-- about deploying yet, so no point making a Towed Gun Yard.
 		--"gbrgunyard",
 		"gbrtankyard",
 		"gbrsupplydepot",
-		"gbrstorage", "gbrstorage",
 	},
 	rus = UnitArray{
 		-- TODO: add veh / tanks / towed guns (if rus has packed howitzers) Russia will be the "expert"
-		"rusbarracks", "rusbarracks", "rusbarracks",
+		"rusbarracks", "rusbarracks",
 		"ruspshack", "ruspshack",
-		"rusvehicleyard", "rusvehicleyard", "rusvehicleyard",
-		"rustankyard", "rustankyard", "rustankyard", "rustankyard", "rustankyard", "rustankyard", "rustankyard", "rustankyard",
+		"rusvehicleyard",
+		"russtorage", "russtorage",
+		"rustankyard",
+		"russupplydepot",
 	},
 	ger = UnitArray{
 		-- works J
-		"gerbarracks", "gerbarracks", "gerbarracks",
+		"gerbarracks", "gerbarracks",
 		"gerstorage",
-		"gervehicleyard", "gervehicleyard", "gervehicleyard",
-		"gerstorage",
-		"gertankyard", "gertankyard", "gertankyard", "gertankyard",
+		"gervehicleyard",
+		"gerstorage", "gerstorage",
+		"gertankyard",
 		"gersupplydepot",
 	},
 	us = UnitArray{
 		-- Works J
-		"usbarracks", "usbarracks", "usbarracks",
-		"usstorage",
-		"usvehicleyard", "usvehicleyard", "usvehicleyard",
-		"usstorage",
-		"ustankyard", "ustankyard", "ustankyard", "ustankyard",
+		"usbarracks", "usbarracks",
+		"usvehicleyard",
+		"usstorage", "usstorage",
+		"ustankyard",
 		"ussupplydepot",
 	},
 }
