@@ -69,12 +69,15 @@ local function BuildBase()
 	-- nothing to do if something is still being build
 	if currentBuildDefID then return end
 
+	-- fix for infinite loop if baseBuildIndex <= 0
+	local count, maxcount = 1, #baseBuildOrder
 	local unitDefID
 	local newIndex = baseBuildIndex
 	repeat
-		newIndex = (newIndex % #baseBuildOrder) + 1
+		newIndex = (newIndex % maxcount) + 1
 		unitDefID = baseBuildOrder[newIndex]
-	until (newIndex == baseBuildIndex) or
+		count = count + 1
+	until (count > maxcount) or
 		-- check if Spring would block this build (unit restriction)
 		((Spring.GetTeamUnitDefCount(myTeamID, unitDefID) or 0) < UnitDefs[unitDefID].maxThisUnit and
 		-- check if some part of the AI would block this build
