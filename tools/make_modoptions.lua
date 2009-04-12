@@ -15,7 +15,7 @@ local extra_options = {
 		name   = 'C.R.A.I.G. difficulty level',
 		desc   = 'Sets the difficulty level of the C.R.A.I.G. bot.',
 		type   = 'list',
-		def    = '3',
+		def    = '2',
 		items = {
 			{
 				key = '1',
