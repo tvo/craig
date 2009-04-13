@@ -86,12 +86,14 @@ local options = chunk()
 
 local optionKeys = {}
 
-for _,v in ipairs(options) do
-	optionKeys[v.key] = true
+for i,v in ipairs(options) do
+	optionKeys[v.key] = i
 end
 
 for _,v in ipairs(extra_options) do
-	if (not optionKeys[v.key]) then
+	if (optionKeys[v.key]) then
+		options[optionKeys[v.key]] = v
+	else
 		options[#options+1] = v
 	end
 end
