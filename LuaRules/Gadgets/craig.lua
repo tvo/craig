@@ -50,7 +50,7 @@ end
 
 
 -- include configuration
-include("LuaRules/Configs/craig/config.lua")
+include("LuaRules/Gadgets/craig/config.lua")
 
 
 if (gadgetHandler:IsSyncedCode()) then

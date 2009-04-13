@@ -66,7 +66,7 @@ local GetUnitTeam = Spring.GetUnitTeam
 local GetUnitAllyTeam = Spring.GetUnitAllyTeam
 local GetUnitPosition = Spring.GetUnitPosition
 local sqrt = math.sqrt
-local isFlag = gadget.flags
+local isFlag = GG.CRAIG.flags
 
 -- Array containing the waypoints and adjacency relations
 -- Format: { { x = x, y = y, z = z, adj = {}, --[[ more properties ]]-- }, ... }
