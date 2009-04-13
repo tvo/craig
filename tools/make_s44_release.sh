@@ -11,7 +11,7 @@ cp -r * .tmp/
 rm -rf .tmp/mutator.zip .tmp/mutator.sdz .tmp/tools/ .tmp/modinfo.*.lua .tmp/springignore.txt
 
 # Remove configs for other mods.
-find .tmp -name '*swiw*' -exec rm -rfv '{}' \;
+find .tmp/LuaRules/Configs/craig/ -mindepth 1 -maxdepth 1 -type d ! -name s44 ! -name maps -exec rm -rfv '{}' \;
 
 # Generate modinfo.lua for Operation Konstantin (v0.92)
 cat > .tmp/modinfo.lua << EOD

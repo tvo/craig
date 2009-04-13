@@ -11,7 +11,7 @@ cp -r * .tmp/
 rm -rf .tmp/mutator.zip .tmp/mutator.sdz .tmp/tools/ .tmp/modinfo.*.lua .tmp/springignore.txt
 
 # Remove configs for other mods.
-find .tmp -name '*s44*' -exec rm -rfv '{}' \;
+find .tmp/LuaRules/Configs/craig/ -mindepth 1 -maxdepth 1 -type d ! -name swiw ! -name maps -exec rm -rfv '{}' \;
 
 # Generate modinfo.lua for Star Wars: Imperial Winter 1.5.051 beta
 cat > .tmp/modinfo.lua << EOD
