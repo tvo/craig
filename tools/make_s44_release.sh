@@ -11,7 +11,7 @@ cp -r * .tmp/
 rm -rf .tmp/mutator.zip .tmp/mutator.sdz .tmp/tools/ .tmp/modinfo.*.lua .tmp/springignore.txt
 
 # Remove configs for other mods.
-find .tmp -name '*swiw*' -exec rm -rfv '{}' \;
+find .tmp/LuaRules/Configs/craig/ -mindepth 1 -maxdepth 1 -type d ! -name s44 ! -name maps -exec rm -rfv '{}' \;
 
 # Generate modinfo.lua for Operation Konstantin (v0.92)
 cat > .tmp/modinfo.lua << EOD
@@ -19,7 +19,7 @@ cat > .tmp/modinfo.lua << EOD
 -- License: GNU General Public License v2
 
 local modinfo = {
-	name = "Spring: 1944 Konstantin + C.R.A.I.G. (v3.1)",
+	name = "Spring: 1944 Pre L2 v02 + C.R.A.I.G. (v3.2)",
 	shortName = "S44",
 	game = "Spring 1944",
 	shortGame = "S44",
@@ -28,7 +28,7 @@ local modinfo = {
 	url = "http://www.spring1944.com",
 	modtype = "1",
 	depend = {
-		"Spring: 1944 Operation Konstantin (v0.92)"
+		"Spring: 1944 Pre L2 v02"
 	},
 }
 
@@ -36,12 +36,20 @@ return modinfo
 EOD
 
 # Add our ModOptions to the official mod's modoptions.
-unzip -p ../S44Konstantin_v092.sdz ModOptions.lua |
-	tools/lua5.1 tools/make_modoptions.lua > .tmp/ModOptions.lua
+unzip -p ../S44Pre-L2_v02.sdz ModOptions.lua |
+	lua tools/make_modoptions.lua > .tmp/ModOptions.lua
 
 # Disable debugging.
 sed -i 's/^local CRAIG_Debug_Mode = 1/local CRAIG_Debug_Mode = 0/g' \
 	.tmp/LuaRules/Gadgets/craig/main.lua
+
+# Add version stamp to all files
+IFS='
+'
+version=`git-rev-parse HEAD`
+for f in `find .tmp -name '*.lua'`; do
+	echo -e "\n-- commit: $version" >> "$f"
+done
 
 # Zip it & cleanup.
 cd .tmp &&

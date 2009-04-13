@@ -11,7 +11,7 @@ cp -r * .tmp/
 rm -rf .tmp/mutator.zip .tmp/mutator.sdz .tmp/tools/ .tmp/modinfo.*.lua .tmp/springignore.txt
 
 # Remove configs for other mods.
-find .tmp -name '*s44*' -exec rm -rfv '{}' \;
+find .tmp/LuaRules/Configs/craig/ -mindepth 1 -maxdepth 1 -type d ! -name swiw ! -name maps -exec rm -rfv '{}' \;
 
 # Generate modinfo.lua for Star Wars: Imperial Winter 1.5.051 beta
 cat > .tmp/modinfo.lua << EOD
@@ -19,7 +19,7 @@ cat > .tmp/modinfo.lua << EOD
 -- License: GNU General Public License v2
 
 local modinfo = {
-	name = "Imperial Winter 1.5.051 beta + C.R.A.I.G. (v3.1)",
+	name = "Imperial Winter 1.5.052 beta + C.R.A.I.G. (v3.2)",
 	shortname = "SWIW",
 	game = "Star Wars: Imperial Winter",
 	shortgame = "SWIW",
@@ -28,7 +28,7 @@ local modinfo = {
 	url = "http://www.imperialwinter.com/",
 	modtype = "1",
 	depend = {
-		"sws.v051.sdz",
+		"Imperial Winter 1.5.052 beta",
 	}
 }
 
@@ -36,12 +36,20 @@ return modinfo
 EOD
 
 # Add our ModOptions to the official mod's modoptions.
-unzip -p ../sws.v051.sdz ModOptions.lua |
-	tools/lua5.1 tools/make_modoptions.lua > .tmp/ModOptions.lua
+unzip -p ../sws.v052.sdz ModOptions.lua |
+	lua tools/make_modoptions.lua > .tmp/ModOptions.lua
 
 # Disable debugging.
 sed -i 's/^local CRAIG_Debug_Mode = 1/local CRAIG_Debug_Mode = 0/g' \
 	.tmp/LuaRules/Gadgets/craig/main.lua
+
+# Add version stamp to all files
+IFS='
+'
+version=`git-rev-parse HEAD`
+for f in `find .tmp -name '*.lua'`; do
+	echo -e "\n-- commit: $version" >> "$f"
+done
 
 # Zip it & cleanup.
 cd .tmp &&
