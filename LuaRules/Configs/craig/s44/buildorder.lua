@@ -31,6 +31,9 @@ gadget.unitBuildOrder = UnitBag{
 		"gbrdaimler",
 		"gbrm5halftrack",
 	},
+	gbrsupplydepot = UnitArray{
+		"gbrm5halftrack",
+	},
 	-- it can not upgrade tank yard yet!
 	gbrtankyard = UnitArray{
 		"gbrcromwell", "gbrcromwell",
@@ -71,6 +74,9 @@ gadget.unitBuildOrder = UnitBag{
 		"rusm5halftrack",
 		"russu76",
 	},
+	russupplydepot = UnitArray{
+		"rusm5halftrack",
+	},
 	rustankyard = UnitArray{
 		-- Works J
 		"rust70", "rust3476",
@@ -102,12 +108,16 @@ gadget.unitBuildOrder = UnitBag{
 		"gersdkfz251",
 		"germarder",
 	},
+	gersupplydepot = UnitArray{
+		"gersdkfz251",
+	},
 	gertankyard = UnitArray{
 		-- Works J
 		"gerpanzeriii", "gerpanzeriii", "gerpanzeriii",
 		"gerstugiii", "gerstugiii", "gerstugiii",
 		"gertiger",
 	},
+	-- United States
 	ushq = UnitArray{
 		-- Works J
 		"ushqengineer", "ushqengineer",
@@ -133,6 +143,9 @@ gadget.unitBuildOrder = UnitBag{
 		"usm8greyhound",
 		"usm3halftrack",
 		"usm8scott",
+	},
+	ussupplydepot = UnitArray{
+		"usm3halftrack",
 	},
 	ustankyard = UnitArray{
 		-- Works J
