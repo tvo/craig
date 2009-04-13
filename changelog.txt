@@ -1,11 +1,14 @@
 v3.1 -> v3.2
 ============
+* Fixed spring lockup (infinite loop) when all base buildings where limited
+  and the base building algorithm reached end of the queue.
 * New constructor syntax used in configuration.  (UnitArray, UnitSet, UnitBag)
 * Moved unitlimits out of buildorder.lua into it's own file: unitlimits.lua
-* Brush size in waypoint editor is now in world coordinates.
-* Waypoint editor loads from LuaRules/Configs/craig/maps as fallback.
-* Only need to hover over the waypoint when pressing M to delete it.
 * Default difficulty level changed to medium.
+* Waypoint editor changes:
+  - Brush size in waypoint editor is now in world coordinates.
+  - Loads from LuaRules/Configs/craig/maps as fallback.
+  - Only need to hover over the waypoint when pressing M to delete it.
 * S44: Huge nerf because of the complaints it was too hard
   - Now in all difficulties all factories are limited.
   - Barracks: 3 on easy, 3 on medium, 4 on hard.
