@@ -43,6 +43,14 @@ unzip -p ../sws.v052.sdz ModOptions.lua |
 sed -i 's/^local CRAIG_Debug_Mode = 1/local CRAIG_Debug_Mode = 0/g' \
 	.tmp/LuaRules/Gadgets/craig/main.lua
 
+# Add version stamp to all files
+IFS='
+'
+version=`git-rev-parse HEAD`
+for f in `find .tmp -name '*.lua'`; do
+	echo -e "\n-- commit: $version" >> "$f"
+done
+
 # Zip it & cleanup.
 cd .tmp &&
 zip -r ../mutator.zip * &&
