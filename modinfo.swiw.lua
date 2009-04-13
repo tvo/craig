@@ -2,16 +2,16 @@
 -- License: GNU General Public License v2
 
 local modinfo = {
-	name = "Imperial Winter 1.5.051 beta + C.R.A.I.G. (git)",
+	name = "Imperial Winter 1.5.052 beta + C.R.A.I.G. (git)",
 	shortname = "SWIW",
 	game = "Star Wars: Imperial Winter",
 	shortgame = "SWIW",
 	mutator = "AI for SWIW",
 	description = "AI for Spring: 1944 hastily bodged into SWIW",
-	url = "www.meatspin.com",
+	url = "http://www.imperialwinter.com/",
 	modtype = "1",
 	depend = {
-		"sws.v051.sdz",
+		"Imperial Winter 1.5.052 beta",
 	}
 }
 
