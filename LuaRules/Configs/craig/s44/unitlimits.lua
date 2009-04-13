@@ -46,10 +46,10 @@ local unitLimits = UnitBag{
 	gertankyard    = { 1, 2, 4 },
 	rustankyard    = { 1, 2, 4 },
 	ustankyard     = { 1, 2, 4 },
-	gbrvehicleyard = 1, -- multiple vehicle yards not useful in my opinion
-	gervehicleyard = 1,
-	rusvehicleyard = 1,
-	usvehicleyard  = 1,
+	gbrvehicleyard = { 1, 1, 2 },
+	gervehicleyard = { 1, 1, 2 },
+	rusvehicleyard = { 1, 1, 2 },
+	usvehicleyard  = { 1, 1, 2 },
 }
 
 -- Convert to format expected by C.R.A.I.G., based on the difficulty.
