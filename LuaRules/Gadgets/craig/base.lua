@@ -77,7 +77,10 @@ local function BuildBase()
 		newIndex = (newIndex % maxcount) + 1
 		unitDefID = baseBuildOrder[newIndex]
 		count = count + 1
-	until (count > maxcount) or
+		-- if there's nothing to do anymore because all units are limited,
+		-- don't wander around but just wait until there's something to do again.
+		if (count > maxcount) then return end
+	until
 		-- check if Spring would block this build (unit restriction)
 		((Spring.GetTeamUnitDefCount(myTeamID, unitDefID) or 0) < UnitDefs[unitDefID].maxThisUnit and
 		-- check if some part of the AI would block this build
