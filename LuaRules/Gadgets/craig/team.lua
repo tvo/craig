@@ -47,20 +47,6 @@ local Log = Team.Log
 local modules = {}
 local callInLists = {}
 
--- constants
-local GAIA_TEAM_ID = Spring.GetGaiaTeamID()
-
--- Unit building (one buildOrder per factory)
-local unitBuildOrder = gadget.unitBuildOrder
-
--- Unit limits
-local unitLimitsMgr = CreateUnitLimitsMgr(myTeamID)
-
--- Combat management
-local waypointMgr = GG.CRAIG_WaypointMgr
-local lastWaypoint = 0
-local combatMgr = CreateCombatMgr(myTeamID, myAllyTeamID, Log)
-
 --------------------------------------------------------------------------------
 
 function Team.GetModule(name)
@@ -85,26 +71,12 @@ function Team.GameStart()
 end
 
 function Team.GameFrame(f)
-	--Log("GameFrame")
+	Log("GameFrame")
 
 	for _,callIn in ipairs(callInLists.GameFrame) do
 		callIn(f)
 	end
-
-	-- TODO: waypoint module
-	if waypointMgr then
-		combatMgr.GameFrame(f)
-	end
 end
-
---------------------------------------------------------------------------------
---
---  Game call-ins
---
-
--- TODO: base building module
--- Short circuit callin which would otherwise only forward the call..
-Team.AllowUnitCreation = unitLimitsMgr.AllowUnitCreation
 
 --------------------------------------------------------------------------------
 --
@@ -127,22 +99,6 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 	for _,callIn in ipairs(callInLists.UnitFinished) do
 		if callIn(unitID, unitDefID, unitTeam) then return end
 	end
-
-	--TODO: cheat module
-	-- idea from BrainDamage: instead of cheating huge amounts of resources,
-	-- just cheat in the cost of the units we build.
-	--Spring.AddTeamResource(myTeamID, "metal", UnitDefs[unitDefID].metalCost)
-	--Spring.AddTeamResource(myTeamID, "energy", UnitDefs[unitDefID].energyCost)
-
-	-- TODO: how to determine module preference?
-
-	-- if any unit manager takes care of the unit, return
-	-- managers are in order of preference
-
-	-- need to prefer flag capping over building to handle Russian commissars
-	if waypointMgr then
-		if combatMgr.UnitFinished(unitID, unitDefID, unitTeam) then return end
-	end
 end
 
 function Team.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
@@ -150,11 +106,6 @@ function Team.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDef
 
 	for _,callIn in ipairs(callInLists.UnitDestroyed) do
 		callIn(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	end
-
-	-- TODO: flag capping module (squads), combat module
-	if waypointMgr then
-		combatMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	end
 end
 
