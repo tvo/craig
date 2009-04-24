@@ -24,16 +24,16 @@ local tables
 
 if (gadgetHandler:IsSyncedCode()) then
 	tables = {
+		"unitLimits",
+	}
+else
+	tables = {
 		"unitBuildOrder",
 		"baseBuildOrder",
 		"baseBuilders",
 		"flags",
 		"flagCappers",
 		"reservedFlagCappers",
-		"unitLimits",
-	}
-else
-	tables = {
 		"unitLimits",
 	}
 end
