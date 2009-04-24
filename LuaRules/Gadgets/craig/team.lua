@@ -61,9 +61,6 @@ local waypointMgr = GG.CRAIG_WaypointMgr
 local lastWaypoint = 0
 local combatMgr = CreateCombatMgr(myTeamID, myAllyTeamID, Log)
 
--- Flag capping
-local flagsMgr = CreateFlagsMgr(myTeamID, myAllyTeamID, mySide, Log)
-
 --------------------------------------------------------------------------------
 
 function Team.GetModule(name)
@@ -85,11 +82,6 @@ function Team.GameStart()
 	for _,callIn in ipairs(callInLists.GameStart) do
 		callIn()
 	end
-
-	-- TODO: waypoint module
-	if waypointMgr then
-		flagsMgr.GameStart()
-	end
 end
 
 function Team.GameFrame(f)
@@ -101,7 +93,6 @@ function Team.GameFrame(f)
 
 	-- TODO: waypoint module
 	if waypointMgr then
-		flagsMgr.GameFrame(f)
 		combatMgr.GameFrame(f)
 	end
 end
@@ -150,10 +141,6 @@ function Team.UnitFinished(unitID, unitDefID, unitTeam)
 
 	-- need to prefer flag capping over building to handle Russian commissars
 	if waypointMgr then
-		if flagsMgr.UnitFinished(unitID, unitDefID, unitTeam) then return end
-	end
-
-	if waypointMgr then
 		if combatMgr.UnitFinished(unitID, unitDefID, unitTeam) then return end
 	end
 end
@@ -167,7 +154,6 @@ function Team.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDef
 
 	-- TODO: flag capping module (squads), combat module
 	if waypointMgr then
-		flagsMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 		combatMgr.UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	end
 end
