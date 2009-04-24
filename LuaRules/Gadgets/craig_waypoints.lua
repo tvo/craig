@@ -33,7 +33,7 @@ function WaypointMgr.GetFrontline(myTeamID, myAllyTeamID)
 
 ]]--
 
-if (not gadgetHandler:IsSyncedCode()) then
+if (gadgetHandler:IsSyncedCode()) then
 	return false --ask for quiet death
 end
 
