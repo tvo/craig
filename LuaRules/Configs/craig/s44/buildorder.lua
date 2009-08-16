@@ -18,7 +18,7 @@ gadget.unitBuildOrder = UnitBag{
 		"gbr_platoon_hq", "gbr_platoon_hq",
 	},
 	gbrbarracks = UnitArray{
-		"gbrengineer", "gbrengineer",
+		"gbrhqengineer", "gbrhqengineer",
 		"gbr_platoon_rifle", "gbr_platoon_assault",
 		"gbr_platoon_rifle", "gbr_platoon_mortar",
 		"gbr_platoon_rifle", "gbr_platoon_at",
@@ -92,11 +92,11 @@ gadget.unitBuildOrder = UnitBag{
 	},
 	gerbarracks = UnitArray{
 		-- Works J
-		"gerengineer", "gerengineer",
+		"gerhqengineer", "gerhqengineer",
 		"ger_platoon_rifle","ger_platoon_rifle", "ger_platoon_rifle",
 		"ger_platoon_rifle","ger_platoon_rifle", "ger_platoon_rifle",
 		"ger_platoon_at", "ger_platoon_mg", "ger_platoon_sniper", "ger_platoon_mortar",
-		"gerleig18_bax",
+		"gerleig18",
 	},
 	gervehicleyard = UnitArray{
 		-- Works J
@@ -127,12 +127,12 @@ gadget.unitBuildOrder = UnitBag{
 	},
 	usbarracks = UnitArray{
 		-- Works J
-		"usengineer", "usengineer",
+		"ushqengineer", "ushqengineer",
 		"us_platoon_rifle", "us_platoon_rifle", "us_platoon_rifle",
 		"us_platoon_rifle", "us_platoon_rifle", "us_platoon_rifle",
 		"us_platoon_assault", "us_platoon_at",
 		"us_platoon_mortar", "us_platoon_sniper", "us_platoon_flame",
-		"usm8gun_bax",
+		"usm8gun",
 	},
 	usvehicleyard = UnitArray{
 		-- Works J
@@ -205,6 +205,7 @@ gadget.baseBuilders = UnitSet{
 	"gersdkfz9",
 	"ruscommander", -- contrary to other sides Russia can start immediately
 	"ruscommissar", -- after game start with base building...
+	"ruscommissar1",
 	"rusengineer",
 	"rusk31",
 	"ushqengineer",
